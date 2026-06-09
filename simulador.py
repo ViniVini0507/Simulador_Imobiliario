@@ -130,13 +130,13 @@ if meta_amortizacao > 0:
     # Exibição da nova média
     st.metric("Desembolso Mensal Médio (Gasto Obrigatório + Poupança + Condomínio)", f"R$ {desembolso_mensal_total:,.2f}")
 
-    st.success(f"📉 Impacto: Sua primeira parcela SAC cairá de R$ {primeira_parcela_sac:,.2f} para R$ {nova_primeira_parcela:,.2f} com este aporte.")
+    st.success(f"📉 Alternativa - Reduzir valor: Sua primeira parcela SAC cairá de R$ {primeira_parcela_sac:,.2f} para R$ {nova_primeira_parcela:,.2f} com este aporte.")
 
 # Ajuste cirúrgico: Cálculo de redução de prazo (amortizando do final)
     if amortizacao_mensal > 0:
         parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
         anos_reduzidos = parcelas_reduzidas / 12
-        st.success(f"⏳ Alternativa (Reduzir Prazo): Se usar esse aporte para abater do prazo, você quita aproximadamente **{parcelas_reduzidas} parcelas** finais (reduzindo o tempo de contrato em cerca de **{anos_reduzidos:.1f} anos**).")
+        st.success(f"⏳ Alternativa - Reduzir Prazo: Esse valor quita aproximadamente **{parcelas_reduzidas} parcelas** finais (redução de cerca de **{anos_reduzidos:.1f} anos**).")
 
 
 
