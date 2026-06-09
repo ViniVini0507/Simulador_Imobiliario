@@ -14,20 +14,20 @@ st.header("1. Parâmetros do Negócio")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    valor_imovel = st.number_input("Valor Total do Imóvel (R$)", min_value=0.0, value=664000.0, step=10000.0)
-    entrada_inicial = st.number_input("Valor da Entrada (Aporte Inicial) (R$)", min_value=0.0, value=30000.0, step=1000.0)
+    valor_imovel = st.number_input("Valor Total do Imóvel (R$)", min_value=0.0, value=0.0, step=10000.0)
+    entrada_inicial = st.number_input("Valor da Entrada (Aporte Inicial) (R$)", min_value=0.0, value=0.0, step=1000.0)
     itbi_construtora = st.radio("ITBI + Registro pagos pela construtora?", ["Sim", "Não"])
 
 with col2:
-    mensal_construtora = st.number_input("Valor da Parcela Mensal (Pré-chaves)", min_value=0.0, value=740.0, step=100.0)
-    anual_construtora = st.number_input("Valor da Parcela Anual", min_value=0.0, value=7000.0, step=500.0)
+    mensal_construtora = st.number_input("Valor da Parcela Mensal (Pré-chaves)", min_value=0.0, value=0.0, step=100.0)
+    anual_construtora = st.number_input("Valor da Parcela Anual", min_value=0.0, value=0.0, step=500.0)
     meses_ate_chaves = st.number_input("Meses até a Entrega das Chaves", min_value=1, value=24, step=1)
 
 with col3:
-    renda_casal = st.number_input("Renda Líquida Mensal do Casal", min_value=0.0, value=14868.0, step=500.0)
+    renda_casal = st.number_input("Renda Líquida Mensal do Casal", min_value=0.0, value=0.0, step=500.0)
     prazo_financiamento = st.number_input("Prazo do Financiamento (Meses)", min_value=1, value=308, step=12)
     taxa_juros_anual = st.number_input("Taxa de Juros Anual do Financiamento (%)", min_value=0.0, value=11.19, step=0.1)
-    valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=600.0, step=50.0)
+    valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=0.0, step=50.0)
 
 # Cálculos Base O saldo devedor congela no momento do financiamento (assumindo financiamento na planta/crédito associativo)
 total_pago_construtora = entrada_inicial + (mensal_construtora * meses_ate_chaves) + (anual_construtora * (meses_ate_chaves // 12))
