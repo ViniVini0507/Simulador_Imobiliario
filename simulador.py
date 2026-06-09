@@ -105,7 +105,7 @@ col5.metric("Primeira Parcela SAC (Aprox.)", f"R$ {primeira_parcela_sac:,.2f}", 
 col6.metric("Última Parcela SAC (Aprox.)", f"R$ {ultima_parcela_sac:,.2f}")
 
 if comprometimento_renda > 30:
-    st.warning("⚠️ A primeira parcela compromete mais de 30% da renda líquida informada. O banco pode exigir uma entrada maior ou aprovar um valor menor de financiamento.")
+    st.warning("⚠️ A primeira parcela compromete mais de 30% da renda líquida informada.")
 
 st.divider()
 
