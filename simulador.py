@@ -29,6 +29,9 @@ with col3:
     taxa_juros_anual = st.number_input("Taxa de Juros Anual do Financiamento (%)", min_value=0.0, value=11.19, step=0.1)
     valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=0.0, step=50.0)
 
+if renda_casal <= 0:
+    st.warning("⚠️ Por favor, insira a renda líquida mensal do casal para calcular o comprometimento.")
+
 # Cálculos Base O saldo devedor congela no momento do financiamento (assumindo financiamento na planta/crédito associativo)
 total_pago_construtora = entrada_inicial + (mensal_construtora * meses_ate_chaves) + (anual_construtora * (meses_ate_chaves // 12))
 saldo_devedor_chaves = valor_imovel - total_pago_construtora
@@ -91,9 +94,11 @@ taxas_e_seguros_fixos = 422.13 # Valor embutido de Seguros (MIP/DFI) e Taxa de A
 primeira_parcela_sac = amortizacao_mensal + (saldo_devedor_chaves * taxa_ajustada) + taxas_e_seguros_fixos
 ultima_parcela_sac = amortizacao_mensal + (amortizacao_mensal * taxa_ajustada) + taxas_e_seguros_fixos
 
-# Manter o restante igual
-comprometimento_renda = (primeira_parcela_sac / renda_casal) * 100
-
+# Ajuste: Evita divisão por zero se a renda não for preenchida
+if renda_casal > 0:
+    comprometimento_renda = (primeira_parcela_sac / renda_casal) * 100
+else:
+    comprometimento_renda = 0
 col4, col5, col6 = st.columns(3)
 col4.metric("Saldo Devedor a Financiar (R$)", f"R$ {saldo_devedor_chaves:,.2f}")
 col5.metric("Primeira Parcela SAC (Aprox.)", f"R$ {primeira_parcela_sac:,.2f}", f"Compromete {comprometimento_renda:.1f}% da renda", delta_color="off")
