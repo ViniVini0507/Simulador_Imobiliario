@@ -30,7 +30,7 @@ with col3:
     valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=0.0, step=50.0)
 
 if renda_casal <= 0:
-    st.warning("⚠️ Por favor, insira a renda líquida mensal do casal para calcular o comprometimento.")
+    st.warning("⚠️ Insira a renda líquida mensal do casal para calcular o comprometimento.")
 
 # Cálculos Base O saldo devedor congela no momento do financiamento (assumindo financiamento na planta/crédito associativo)
 total_pago_construtora = entrada_inicial + (mensal_construtora * meses_ate_chaves) + (anual_construtora * (meses_ate_chaves // 12))
