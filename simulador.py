@@ -115,6 +115,7 @@ if comprometimento_renda > 30:
 
 st.divider()
 
+# 4. Planejamento de Amortização Extraordinária
 st.header("4. Planejamento de Amortização Extraordinária")
 meta_amortizacao = st.slider("Quanto você deseja abater do saldo devedor nas chaves? (R$)", min_value=0, max_value=int(saldo_devedor_chaves), step=5000, value=50000)
 
@@ -141,4 +142,45 @@ if meta_amortizacao > 0:
         parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
         anos_reduzidos = parcelas_reduzidas / 12
         st.success(f"⏳ **Alternativa - Reduzir Prazo:** Esse valor quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de cerca de **{anos_reduzidos:.1f} anos**).")
+
+
+st.divider()
+
+# 5. Simulação de Orçamento: O 'Squeeze' da Obra
+st.subheader("5. Simulação de Orçamento: Poupança x Obra")
+st.markdown("Estabeleça o teto de gastos do mês. Conforme a evolução de obra 'esmaga' sua margem de poupança, o sistema aumenta automaticamente seu desembolso para garantir a reserva mínima estipulada.")
+
+col7, col8 = st.columns(2)
+with col7:
+    orcamento_alvo = st.number_input("Orçamento Fixo Mensal (R$)", min_value=1000.0, value=6000.0, step=500.0)
+with col8:
+    poupanca_minima = st.number_input("Piso Obrigatório de Poupança (R$)", min_value=0.0, value=1500.0, step=100.0)
+
+lista_poupanca = []
+lista_desembolso_real = []
+
+# Loop condicional que testa a compressão mês a mês
+for custo in df_pre_chaves['Custo Total Mensal (R$)']:
+    poupanca_projetada = orcamento_alvo - custo
+    
+    if poupanca_projetada < poupanca_minima:
+        # A obra engoliu a poupança: rompemos o teto para garantir o mínimo
+        poupanca_real = poupanca_minima
+        desembolso_mensal = custo + poupanca_minima
+    else:
+        # O teto de gastos dá conta da obra e ainda sobra acima do piso
+        poupanca_real = poupanca_projetada
+        desembolso_mensal = orcamento_alvo
+        
+    lista_poupanca.append(poupanca_real)
+    lista_desembolso_real.append(desembolso_mensal)
+
+df_pre_chaves['Poupança Gerada (R$)'] = lista_poupanca
+df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
+
+st.bar_chart(df_pre_chaves[['Custo Total Mensal (R$)', 'Poupança Gerada (R$)']])
+
+total_acumulado = sum(lista_poupanca)
+st.metric("Montante Total Poupado para as Chaves", f"R$ {total_acumulado:,.2f}")
+
 
