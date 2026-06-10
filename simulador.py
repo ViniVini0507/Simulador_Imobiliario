@@ -109,38 +109,30 @@ if comprometimento_renda > 30:
 
 st.divider()
 
-# 4. Meta de Poupança para Amortização Extraordinária
 st.header("4. Planejamento de Amortização Extraordinária")
-st.markdown("Crie um fundo de reserva durante o período de obras para reduzir o saldo devedor logo após a entrega das chaves.")
-
 meta_amortizacao = st.slider("Quanto você deseja abater do saldo devedor nas chaves? (R$)", min_value=0, max_value=int(saldo_devedor_chaves), step=5000, value=50000)
 
 if meta_amortizacao > 0:
     poupanca_mensal_necessaria = meta_amortizacao / meses_ate_chaves
     novo_saldo_devedor = saldo_devedor_chaves - meta_amortizacao
     nova_primeira_parcela = (novo_saldo_devedor / prazo_financiamento) + (novo_saldo_devedor * taxa_juros_mensal)
-
-    # Cálculo da média de desembolso
-    # Ajuste: inclusão do " (R$)" no nome da coluna
-    media_gasto_obrigatorio = df_pre_chaves['Custo Total Mensal (R$)'].mean()
-    desembolso_mensal_total = poupanca_mensal_necessaria + media_gasto_obrigatorio + valor_condominio
-
+    
+    # Cálculo: Maior parcela de gasto (Mensal + Evolução Máxima) + Poupança
+    # Usamos o 'max' para projetar o pior cenário de desembolso mensal durante a obra
+    pior_cenario_mensal_obra = df_pre_chaves['Custo Total Mensal (R$)'].max()
+    desembolso_maximo_sem_condominio = poupanca_mensal_necessaria + pior_cenario_mensal_obra
+    
     st.info(f"💡 Poupança mensal necessária: **R$ {poupanca_mensal_necessaria:,.2f}**")
-
-    # Exibição da nova média
-    st.metric("Desembolso Mensal Médio (Gasto Obrigatório + Poupança + Condomínio)", f"R$ {desembolso_mensal_total:,.2f}")
-
-    st.success(f"📉 Alternativa - Reduzir Valor: Sua primeira parcela SAC cairá de R$ {primeira_parcela_sac:,.2f} para R$ {nova_primeira_parcela:,.2f} com este aporte.")
-
-# Ajuste cirúrgico: Cálculo de redução de prazo (amortizando do final)
+    
+    # Exibição da Parcela Máxima de Gasto (Dívida)
+    st.metric("Parcela Máxima de Gasto (Dívida Obra + Poupança)", f"R$ {desembolso_maximo_sem_condominio:,.2f}")
+        
+    # Alternativa 1: Reduzir Valor da Parcela
+    st.success(f"📉 **Alternativa - Reduzir Valor:** Sua primeira parcela SAC cairá de R$ {primeira_parcela_sac:,.2f} para **R$ {nova_primeira_parcela:,.2f}** (mantendo o prazo original).")
+    
+    # Alternativa 2: Reduzir Prazo
     if amortizacao_mensal > 0:
         parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
         anos_reduzidos = parcelas_reduzidas / 12
-        st.success(f"⏳ Alternativa - Reduzir Prazo: Esse valor quita aproximadamente **{parcelas_reduzidas} parcelas** finais (redução de cerca de **{anos_reduzidos:.1f} anos**).")
-
-
-
-
-
-
+        st.success(f"⏳ **Alternativa - Reduzir Prazo:** Esse valor quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de cerca de **{anos_reduzidos:.1f} anos**).")
 
