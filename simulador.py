@@ -154,7 +154,8 @@ if meta_amortizacao > 0:
 st.divider()
 
 # 5. Simulação de Orçamento: O 'Squeeze' da Obra
-st.subheader("5. Simulação de Orçamento: Poupança x Obra")
+st.divider()
+st.subheader("5. Simulação de Orçamento: O 'Squeeze' da Obra")
 st.markdown("Estabeleça o teto de gastos do mês. Conforme a evolução de obra 'esmaga' sua margem de poupança, o sistema aumenta automaticamente seu desembolso para garantir a reserva mínima estipulada.")
 
 col7, col8 = st.columns(2)
@@ -166,16 +167,13 @@ with col8:
 lista_poupanca = []
 lista_desembolso_real = []
 
-# Loop condicional que testa a compressão mês a mês
 for custo in df_pre_chaves['Custo Total Mensal (R$)']:
     poupanca_projetada = orcamento_alvo - custo
     
     if poupanca_projetada < poupanca_minima:
-        # A obra engoliu a poupança: rompemos o teto para garantir o mínimo
         poupanca_real = poupanca_minima
         desembolso_mensal = custo + poupanca_minima
     else:
-        # O teto de gastos dá conta da obra e ainda sobra acima do piso
         poupanca_real = poupanca_projetada
         desembolso_mensal = orcamento_alvo
         
@@ -187,16 +185,42 @@ df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
 
 st.bar_chart(df_pre_chaves[['Custo Total Mensal (R$)', 'Poupança Gerada (R$)']])
 
-total_acumulado = sum(lista_poupanca)
+# 6. Visão Dinâmica Consolidada (Matriz Anual)
+st.divider()
+st.subheader("6. Visão Dinâmica Consolidada (Matriz Anual)")
+st.markdown("Projeção de fluxo de caixa mês a mês agrupada por ano, espelhando o controle executivo.")
 
-# O loop e a criação do dataframe continuam os mesmos acima...
+import datetime
+data_inicio = datetime.date(2026, 6, 1)
+datas_reais = [data_inicio + pd.DateOffset(months=i) for i in range(meses_ate_chaves)]
+
+df_pre_chaves['Data Real'] = datas_reais
+df_pre_chaves['Ano'] = df_pre_chaves['Data Real'].dt.year
+
+meses_pt = {1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun', 
+            7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'}
+df_pre_chaves['Mês Nome'] = df_pre_chaves['Data Real'].dt.month.map(meses_pt)
+
+df_visao = df_pre_chaves[['Ano', 'Mês Nome', 'Poupança Gerada (R$)', 'Evolução de Obra (R$)', 'Custo Total Mensal (R$)']]
+
+anos_unicos = df_visao['Ano'].unique()
+abas = st.tabs([f"📅 {ano}" for ano in anos_unicos])
+
+for i, ano in enumerate(anos_unicos):
+    with abas[i]:
+        df_ano = df_visao[df_visao['Ano'] == ano].copy()
+        df_ano = df_ano.set_index('Mês Nome')
+        df_ano = df_ano.drop(columns=['Ano'])
+        
+        df_ano.loc['TOTAL DO ANO'] = df_ano.sum()
+        
         st.dataframe(
             df_ano.style.format("R$ {:,.2f}")
                         .map(lambda _: 'font-weight: bold; background-color: #1E1E1E;', subset=pd.IndexSlice[['TOTAL DO ANO'], :]),
             use_container_width=True
         )
 
-# Ajuste Cirúrgico: Painel unificado com os 3 grandes totais acumulados do período
+# Painel unificado com os 3 grandes totais acumulados do período
 st.markdown("---")
 st.subheader("📊 Resumo Consolidado do Período de Obras")
 col_tot1, col_tot2, col_tot3 = st.columns(3)
@@ -209,50 +233,6 @@ col_tot1.metric("Total Acumulado (Poupança)", f"R$ {total_poupanca_geral:,.2f}"
 col_tot2.metric("Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
 col_tot3.metric("Total Gasto (Obrigações)", f"R$ {total_gasto_geral:,.2f}")
 
-st.divider()
-st.subheader("6. Visão Dinâmica Consolidada (Matriz Anual)")
-st.markdown("Projeção de fluxo de caixa mês a mês agrupada por ano, espelhando o controle executivo.")
 
-# 1. Transformar os meses relativos em um calendário real (Iniciando em Junho de 2026)
-# Certifique-se de importar datetime no topo do arquivo se já não estiver lá: import datetime
-import datetime
 
-data_inicio = datetime.date(2026, 6, 1)
-datas_reais = [data_inicio + pd.DateOffset(months=i) for i in range(meses_ate_chaves)]
 
-df_pre_chaves['Data Real'] = datas_reais
-df_pre_chaves['Ano'] = df_pre_chaves['Data Real'].dt.year
-
-meses_pt = {1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun', 
-            7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'}
-df_pre_chaves['Mês Nome'] = df_pre_chaves['Data Real'].dt.month.map(meses_pt)
-
-# 2. Isolar as colunas estratégicas que você quer ver na matriz
-df_visao = df_pre_chaves[['Ano', 'Mês Nome', 'Poupança Gerada (R$)', 'Evolução de Obra (R$)', 'Custo Total Mensal (R$)']]
-
-# 3. Criar a interface dinâmica: Uma aba para cada ano
-anos_unicos = df_visao['Ano'].unique()
-abas = st.tabs([f"📅 {ano}" for ano in anos_unicos])
-
-for i, ano in enumerate(anos_unicos):
-    with abas[i]:
-        # Filtrar os dados do ano específico
-        df_ano = df_visao[df_visao['Ano'] == ano].copy()
-        
-        # Ocultar a coluna 'Ano' e definir o 'Mês' como índice da tabela
-        df_ano = df_ano.set_index('Mês Nome')
-        df_ano = df_ano.drop(columns=['Ano'])
-        
-        # Calcular o Totalizador daquele ano (O equivalente à sua última linha da planilha)
-        df_ano.loc['TOTAL DO ANO'] = df_ano.sum()
-        
-       # Ajuste cirúrgico: 'applymap' atualizado para 'map' devido à nova versão do Pandas
-        st.dataframe(
-            df_ano.style.format("R$ {:,.2f}")
-                        .map(lambda _: 'font-weight: bold; background-color: #1E1E1E;', subset=pd.IndexSlice[['TOTAL DO ANO'], :]),
-            use_container_width=True
-        )
-
-# Métrica de Resumo Geral
-total_geral_obra = df_pre_chaves['Evolução de Obra (R$)'].sum()
-st.caption(f"**Total Acumulado de Evolução de Obra (Todo o Período):** R$ {total_geral_obra:,.2f}")
