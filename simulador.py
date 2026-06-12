@@ -149,7 +149,6 @@ if meta_amortizacao > 0:
 st.divider()
 
 # 5. Simulação de Orçamento: O 'Squeeze' da Obra
-st.divider()
 st.subheader("5. Simulação de Orçamento: O 'Squeeze' da Obra")
 st.markdown("Estabeleça o teto de gastos do mês. Conforme a evolução de obra 'esmaga' sua margem de poupança, o sistema aumenta automaticamente seu desembolso para garantir a reserva mínima estipulada.")
 
