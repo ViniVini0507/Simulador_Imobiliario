@@ -52,14 +52,14 @@ taxas_fixas_cet = 422.13
 amort_mensal_previa = saldo_devedor_chaves / prazo_financiamento
 teto_conservador_obra = amort_mensal_previa + (saldo_devedor_chaves * taxa_ajustada_cet) + taxas_fixas_cet
 
-# Ajuste Cirúrgico: Evolução de obra começando apenas em Agosto (Mês 3)
-obra_inicial = 1223.0 
+# Ajuste Cirúrgico: Evolução de obra iniciando em Agosto com o valor estimado da sua planilha (R$ 1.479,06)
+obra_inicial = 1479.06 
 meses = np.arange(1, meses_ate_chaves + 1)
 
-# Inicializa o array de evolução de obra com zeros
+# Inicializa o array de evolução de obra com zeros (Junho e Julho zerados)
 evolucao_obra = np.zeros(meses_ate_chaves)
 
-# Preenche com a linha de evolução apenas a partir do mês 3 (Agosto)
+# Preenche com a linha de evolução linear a partir de Agosto (Mês 3)
 if meses_ate_chaves > 2:
     evolucao_obra[2:] = np.linspace(obra_inicial, teto_conservador_obra, meses_ate_chaves - 2)
 
