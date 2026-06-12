@@ -212,11 +212,13 @@ col_tot1, col_tot2, col_tot3 = st.columns(3)
 
 total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
 total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
-total_gasto_geral = df_pre_chaves['Custo Total Mensal (R$)'].sum()
+
+# Ajuste Cirúrgico: Somando tudo para mostrar o Esforço Total de Caixa do período
+total_esforco_caixa = df_pre_chaves['Desembolso Real do Mês (R$)'].sum()
 
 col_tot1.metric("Total Acumulado (Poupança)", f"R$ {total_poupanca_geral:,.2f}")
 col_tot2.metric("Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
-col_tot3.metric("Total Gasto (Obrigações)", f"R$ {total_gasto_geral:,.2f}")
+col_tot3.metric("Esforço Total de Caixa (Gasto + Poupança)", f"R$ {total_esforco_caixa:,.2f}")
 
 
 
