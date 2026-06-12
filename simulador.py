@@ -87,35 +87,29 @@ else:
 
 st.divider()
 
-# 3. Projeção SAC Pós-Chaves e Saldo Devedor
+# 3. Financiamento Pós-Chaves (Tabela SAC)
 st.header("3. Financiamento Pós-Chaves (Tabela SAC)")
 
-amortizacao_mensal = saldo_devedor_chaves / prazo_financiamento
-# Dentro do Bloco 3, antes do cálculo da parcela:
-custos_fixos_mensais = 25.00 # Taxa de administração média
-seguros_estimados = (saldo_devedor_chaves * 0.0005) # Estimativa de custo de seguro sobre saldo
+# Ajuste Cirúrgico: Valores exatos já aprovados pela Caixa
+primeira_parcela_sac = 8225.12
+ultima_parcela_sac = 2109.25
 
-# Ajuste cirúrgico: Cálculo exato da engenharia reversa da Caixa
-amortizacao_mensal = saldo_devedor_chaves / prazo_financiamento
-
-taxa_ajustada = 0.009521 # Juros puros da Caixa (aprox. 0.952% a.m.)
-taxas_e_seguros_fixos = 422.13 # Valor embutido de Seguros (MIP/DFI) e Taxa de Adm
-
-primeira_parcela_sac = amortizacao_mensal + (saldo_devedor_chaves * taxa_ajustada) + taxas_e_seguros_fixos
-ultima_parcela_sac = amortizacao_mensal + (amortizacao_mensal * taxa_ajustada) + taxas_e_seguros_fixos
-
-# Ajuste: Evita divisão por zero se a renda não for preenchida
-if renda_casal > 0:
-    comprometimento_renda = (primeira_parcela_sac / renda_casal) * 100
-else:
-    comprometimento_renda = 0
 col4, col5, col6 = st.columns(3)
 col4.metric("Saldo Devedor a Financiar (R$)", f"R$ {saldo_devedor_chaves:,.2f}")
-col5.metric("Primeira Parcela SAC (Aprox.)", f"R$ {primeira_parcela_sac:,.2f}", f"Compromete {comprometimento_renda:.1f}% da renda", delta_color="off")
-col6.metric("Última Parcela SAC (Aprox.)", f"R$ {ultima_parcela_sac:,.2f}")
+# Atualizei as legendas para refletir que agora são valores exatos contratuais
+col5.metric("Primeira Parcela SAC (Exata)", f"R$ {primeira_parcela_sac:,.2f}")
+col6.metric("Última Parcela SAC (Exata)", f"R$ {ultima_parcela_sac:,.2f}")
 
-if comprometimento_renda > 30:
-    st.warning("⚠️ A primeira parcela compromete mais de 30% da renda líquida informada.")
+# Proteção contra divisão por zero (que já havíamos implementado)
+if renda_casal > 0:
+    comprometimento_renda = (primeira_parcela_sac / renda_casal) * 100
+    
+    if comprometimento_renda > 30:
+        st.warning(f"⚠️ A primeira parcela compromete {comprometimento_renda:.1f}% da renda líquida informada. O limite exigido pelos bancos é 30% da renda bruta.")
+    else:
+        st.success(f"✅ Comprometimento de renda em {comprometimento_renda:.1f}%.")
+else:
+    st.info("ℹ️ Insira a renda do casal na Seção 1 para visualizar o comprometimento.")
 
 st.divider()
 
