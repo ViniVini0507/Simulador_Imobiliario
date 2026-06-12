@@ -184,3 +184,50 @@ total_acumulado = sum(lista_poupanca)
 st.metric("Montante Total Poupado para as Chaves", f"R$ {total_acumulado:,.2f}")
 
 
+st.divider()
+st.subheader("6. Visão Dinâmica Consolidada (Matriz Anual)")
+st.markdown("Projeção de fluxo de caixa mês a mês agrupada por ano, espelhando o controle executivo.")
+
+# 1. Transformar os meses relativos em um calendário real (Iniciando em Junho de 2026)
+# Certifique-se de importar datetime no topo do arquivo se já não estiver lá: import datetime
+import datetime
+
+data_inicio = datetime.date(2026, 6, 1)
+datas_reais = [data_inicio + pd.DateOffset(months=i) for i in range(meses_ate_chaves)]
+
+df_pre_chaves['Data Real'] = datas_reais
+df_pre_chaves['Ano'] = df_pre_chaves['Data Real'].dt.year
+
+meses_pt = {1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun', 
+            7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'}
+df_pre_chaves['Mês Nome'] = df_pre_chaves['Data Real'].dt.month.map(meses_pt)
+
+# 2. Isolar as colunas estratégicas que você quer ver na matriz
+df_visao = df_pre_chaves[['Ano', 'Mês Nome', 'Poupança Gerada (R$)', 'Evolução de Obra (R$)', 'Custo Total Mensal (R$)']]
+
+# 3. Criar a interface dinâmica: Uma aba para cada ano
+anos_unicos = df_visao['Ano'].unique()
+abas = st.tabs([f"📅 {ano}" for ano in anos_unicos])
+
+for i, ano in enumerate(anos_unicos):
+    with abas[i]:
+        # Filtrar os dados do ano específico
+        df_ano = df_visao[df_visao['Ano'] == ano].copy()
+        
+        # Ocultar a coluna 'Ano' e definir o 'Mês' como índice da tabela
+        df_ano = df_ano.set_index('Mês Nome')
+        df_ano = df_ano.drop(columns=['Ano'])
+        
+        # Calcular o Totalizador daquele ano (O equivalente à sua última linha da planilha)
+        df_ano.loc['TOTAL DO ANO'] = df_ano.sum()
+        
+        # Renderizar a tabela com formatação contábil (R$)
+        st.dataframe(
+            df_ano.style.format("R$ {:,.2f}")
+                        .applymap(lambda _: 'font-weight: bold; background-color: #1E1E1E;', subset=pd.IndexSlice[['TOTAL DO ANO'], :]),
+            use_container_width=True
+        )
+
+# Métrica de Resumo Geral
+total_geral_obra = df_pre_chaves['Evolução de Obra (R$)'].sum()
+st.caption(f"**Total Acumulado de Evolução de Obra (Todo o Período):** R$ {total_geral_obra:,.2f}")
