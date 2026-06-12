@@ -221,10 +221,10 @@ for i, ano in enumerate(anos_unicos):
         # Calcular o Totalizador daquele ano (O equivalente à sua última linha da planilha)
         df_ano.loc['TOTAL DO ANO'] = df_ano.sum()
         
-        # Renderizar a tabela com formatação contábil (R$)
+       # Ajuste cirúrgico: 'applymap' atualizado para 'map' devido à nova versão do Pandas
         st.dataframe(
             df_ano.style.format("R$ {:,.2f}")
-                        .applymap(lambda _: 'font-weight: bold; background-color: #1E1E1E;', subset=pd.IndexSlice[['TOTAL DO ANO'], :]),
+                        .map(lambda _: 'font-weight: bold; background-color: #1E1E1E;', subset=pd.IndexSlice[['TOTAL DO ANO'], :]),
             use_container_width=True
         )
 
