@@ -135,12 +135,7 @@ if meta_amortizacao > 0:
     # Usamos o 'max' para projetar o pior cenário de desembolso mensal durante a obra
     pior_cenario_mensal_obra = df_pre_chaves['Custo Total Mensal (R$)'].max()
     desembolso_maximo_sem_condominio = poupanca_mensal_necessaria + pior_cenario_mensal_obra
-    
-    st.info(f"💡 Poupança mensal necessária: **R$ {poupanca_mensal_necessaria:,.2f}**")
-    
-    # Exibição da Parcela Máxima de Gasto (Dívida)
-    st.metric("Parcela Máxima de Gasto (Dívida Obra + Poupança)", f"R$ {desembolso_maximo_sem_condominio:,.2f}")
-        
+            
     # Alternativa 1: Reduzir Valor da Parcela
     st.success(f"📉 **Alternativa - Reduzir Valor:** Sua primeira parcela SAC cairá de R$ {primeira_parcela_sac:,.2f} para **R$ {nova_primeira_parcela:,.2f}** (mantendo o prazo original).")
     
