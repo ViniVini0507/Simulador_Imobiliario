@@ -147,7 +147,7 @@ col7, col8 = st.columns(2)
 with col7:
     orcamento_alvo = st.number_input("Orçamento Fixo Mensal (R$)", min_value=1000.0, value=6000.0, step=500.0)
 with col8:
-    poupanca_minima = st.number_input("Piso Obrigatório de Poupança (R$)", min_value=0.0, value=1500.0, step=100.0)
+    poupanca_minima = st.number_input("Piso Obrigatório de Poupança (R$)", min_value=0.0, value=1000.0, step=100.0)
 
 lista_poupanca = []
 lista_desembolso_real = []
