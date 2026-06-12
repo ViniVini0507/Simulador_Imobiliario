@@ -115,18 +115,19 @@ st.divider()
 
 # 4. Planejamento de Amortização Extraordinária
 st.header("4. Planejamento de Amortização Extraordinária")
+
+# O slider usa o saldo devedor calculado na Seção 1
 meta_amortizacao = st.slider("Quanto você deseja abater do saldo devedor nas chaves? (R$)", min_value=0, max_value=int(saldo_devedor_chaves), step=5000, value=50000)
 
 if meta_amortizacao > 0:
-    poupanca_mensal_necessaria = meta_amortizacao / meses_ate_chaves
-    novo_saldo_devedor = saldo_devedor_chaves - meta_amortizacao
-    nova_primeira_parcela = (novo_saldo_devedor / prazo_financiamento) + (novo_saldo_devedor * taxa_juros_mensal)
+    # Correção: Recriando a variável de amortização constante (SAC)
+    amortizacao_mensal = saldo_devedor_chaves / prazo_financiamento
     
-    # Cálculo: Maior parcela de gasto (Mensal + Evolução Máxima) + Poupança
-    # Usamos o 'max' para projetar o pior cenário de desembolso mensal durante a obra
-    pior_cenario_mensal_obra = df_pre_chaves['Custo Total Mensal (R$)'].max()
-    desembolso_maximo_sem_condominio = poupanca_mensal_necessaria + pior_cenario_mensal_obra
-            
+    # Recálculo preciso da nova parcela reduzida usando o valor cravado da Caixa
+    taxa_juros_mensal = 0.009521 # Taxa de juros mensal aproximada (CET)
+    reducao_parcela = (meta_amortizacao / prazo_financiamento) + (meta_amortizacao * taxa_juros_mensal)
+    nova_primeira_parcela = primeira_parcela_sac - reducao_parcela
+    
     # Alternativa 1: Reduzir Valor da Parcela
     st.success(f"📉 **Alternativa - Reduzir Valor:** Sua primeira parcela SAC cairá de R$ {primeira_parcela_sac:,.2f} para **R$ {nova_primeira_parcela:,.2f}** (mantendo o prazo original).")
     
@@ -135,8 +136,7 @@ if meta_amortizacao > 0:
         parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
         anos_reduzidos = parcelas_reduzidas / 12
         st.success(f"⏳ **Alternativa - Reduzir Prazo:** Esse valor quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de cerca de **{anos_reduzidos:.1f} anos**).")
-
-
+        
 st.divider()
 
 # 5. Simulação de Orçamento: Poupança x Obra
