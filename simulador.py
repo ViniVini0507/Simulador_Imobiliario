@@ -46,16 +46,23 @@ juros_maximo_obra = saldo_devedor_chaves * taxa_juros_mensal
 # 2. Fluxo de Caixa Pré-Chaves
 st.header("2. Fluxo de Caixa Pré-Chaves")
 
-# Ajuste Cirúrgico: Teto Conservador = 100% da 1ª Parcela SAC
+# Teto Conservador = 100% da 1ª Parcela SAC
 taxa_ajustada_cet = 0.009521
 taxas_fixas_cet = 422.13
 amort_mensal_previa = saldo_devedor_chaves / prazo_financiamento
 teto_conservador_obra = amort_mensal_previa + (saldo_devedor_chaves * taxa_ajustada_cet) + taxas_fixas_cet
 
-# Evolução de obra começando em 15% (R$ 1.223) e indo até o teto conservador
+# Ajuste Cirúrgico: Evolução de obra começando apenas em Agosto (Mês 3)
 obra_inicial = 1223.0 
 meses = np.arange(1, meses_ate_chaves + 1)
-evolucao_obra = np.linspace(obra_inicial, teto_conservador_obra, meses_ate_chaves)
+
+# Inicializa o array de evolução de obra com zeros
+evolucao_obra = np.zeros(meses_ate_chaves)
+
+# Preenche com a linha de evolução apenas a partir do mês 3 (Agosto)
+if meses_ate_chaves > 2:
+    evolucao_obra[2:] = np.linspace(obra_inicial, teto_conservador_obra, meses_ate_chaves - 2)
+
 parcelas_mensais = np.full(meses_ate_chaves, mensal_construtora)
 
 # Anual diluída
