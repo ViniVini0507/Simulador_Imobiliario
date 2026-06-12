@@ -188,8 +188,26 @@ df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
 st.bar_chart(df_pre_chaves[['Custo Total Mensal (R$)', 'Poupança Gerada (R$)']])
 
 total_acumulado = sum(lista_poupanca)
-st.metric("Montante Total Poupado para as Chaves", f"R$ {total_acumulado:,.2f}")
 
+# O loop e a criação do dataframe continuam os mesmos acima...
+        st.dataframe(
+            df_ano.style.format("R$ {:,.2f}")
+                        .map(lambda _: 'font-weight: bold; background-color: #1E1E1E;', subset=pd.IndexSlice[['TOTAL DO ANO'], :]),
+            use_container_width=True
+        )
+
+# Ajuste Cirúrgico: Painel unificado com os 3 grandes totais acumulados do período
+st.markdown("---")
+st.subheader("📊 Resumo Consolidado do Período de Obras")
+col_tot1, col_tot2, col_tot3 = st.columns(3)
+
+total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
+total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
+total_gasto_geral = df_pre_chaves['Custo Total Mensal (R$)'].sum()
+
+col_tot1.metric("Total Acumulado (Poupança)", f"R$ {total_poupanca_geral:,.2f}")
+col_tot2.metric("Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
+col_tot3.metric("Total Gasto (Obrigações)", f"R$ {total_gasto_geral:,.2f}")
 
 st.divider()
 st.subheader("6. Visão Dinâmica Consolidada (Matriz Anual)")
