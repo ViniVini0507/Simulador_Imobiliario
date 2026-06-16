@@ -135,7 +135,19 @@ st.info(f"💡 A 1ª parcela do financiamento na entrega das chaves ({sistema_am
 
 # --- NOVO: CONSTRUTOR DO DATAFRAME PRÉ-CHAVES ---
 meses_array = np.arange(1, int(meses_ate_chaves) + 1)
-evolucao_obra_array = np.linspace(obra_inicial, teto_obra, len(meses_array))
+
+# Lógica de Carência: A Evolução de Obra só começa em Agosto
+# Como o app inicia em Junho (Mês 1), temos 2 meses de carência (Junho e Julho)
+meses_carencia_eo = 2 
+
+if len(meses_array) > meses_carencia_eo:
+    eo_zerada = np.zeros(meses_carencia_eo)
+    # A curva de evolução de obra só vai do mês 3 até a entrega das chaves
+    eo_ativa = np.linspace(obra_inicial, teto_obra, len(meses_array) - meses_carencia_eo)
+    evolucao_obra_array = np.concatenate((eo_zerada, eo_ativa))
+else:
+    evolucao_obra_array = np.zeros(len(meses_array))
+
 parcela_const_array = np.full(len(meses_array), mensal_construtora_calculada)
 
 df_pre_chaves = pd.DataFrame({
