@@ -225,35 +225,46 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     # --- GRÁFICO EMPILHADO COM PLOTLY E LINHAS DE RISCO ---
     st.markdown("### Composição Mensal e Alertas de Risco")
     
+    # 1. Mudamos a ordem do 'y' para colocar a Evolução de Obra por último (topo da barra)
     fig = px.bar(
         df_pre_chaves, 
         x='Mês', 
-        y=['Parcela Construtora (R$)', 'Evolução de Obra (R$)', 'Poupança Gerada (R$)'],
+        y=['Parcela Construtora (R$)', 'Poupança Gerada (R$)', 'Evolução de Obra (R$)'],
         labels={'value': 'Orçamento Mensal (R$)', 'variable': 'Composição'},
         color_discrete_map={
-            'Parcela Construtora (R$)': '#1f77b4',  
-            'Evolução de Obra (R$)': '#ff7f0e',      
-            'Poupança Gerada (R$)': '#2ca02c'        
+            'Parcela Construtora (R$)': '#1f77b4',  # Azul (Base fixa no chão)
+            'Poupança Gerada (R$)': '#2ca02c',       # Verde (Meio - sendo esmagada)
+            'Evolução de Obra (R$)': '#ff7f0e'       # Laranja (Topo - Crescendo livremente)
         }
     )
     
+    # Calculando as travas de risco baseadas na Renda Líquida
     limite_30 = renda_casal * 0.30
     limite_50 = renda_casal * 0.50
     
     # Adicionando as linhas horizontais de referência
     if renda_casal > 0:
         fig.add_hline(y=limite_30, line_dash="dash", line_color="gold", 
-                      annotation_text="⚠️ 30% da Renda", annotation_position="top left")
+                      annotation_text="⚠️ 30% da Renda (Alerta Saudável)", annotation_position="top left")
         fig.add_hline(y=limite_50, line_dash="dash", line_color="red", 
-                      annotation_text="🚨 50% da Renda", annotation_position="top left")
+                      annotation_text="🚨 50% da Renda (Risco Vermelho)", annotation_position="top left")
 
-    # Ajustes finos de layout
+    # 2. O TRUQUE DO TOTAL: Adiciona uma linha invisível só para mostrar o Total no balão
+    fig.add_scatter(
+        x=df_pre_chaves['Mês'],
+        y=df_pre_chaves['Desembolso Real do Mês (R$)'],
+        mode='lines',
+        line=dict(color='rgba(0,0,0,0)'), # Linha 100% transparente
+        name='Total do Mês',
+        hovertemplate="<b>R$ %{y:,.2f}</b>"
+    )
+
+    # 3. Ajustes finos de layout
     fig.update_layout(
         barmode='stack', 
         legend_title_text='', 
         xaxis_title="Meses até as Chaves",
         hovermode="x unified",
-        # NOVO: Estilizando a caixinha do hover para ficar com cara de app moderno
         hoverlabel=dict(
             bgcolor="#1E1E1E",
             font_size=14,
@@ -261,11 +272,10 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
         )
     )
     
-    # A MÁGICA DA UI LIMPA:
-    # Isso força o Plotly a mostrar apenas "R$ Valor" formatado com 2 casas decimais,
-    # removendo todo aquele texto repetido de "Composição=" e "Mês="
+    # Formata apenas as barras (para não bugar a linha invisível que acabamos de criar)
     fig.update_traces(
-        hovertemplate="<b>R$ %{y:,.2f}</b>"
+        hovertemplate="<b>R$ %{y:,.2f}</b>",
+        selector=dict(type='bar')
     )
     
     st.plotly_chart(fig, use_container_width=True)    
