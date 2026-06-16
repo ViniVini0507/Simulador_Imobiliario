@@ -170,11 +170,54 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     st.divider()
 
-    # --- 5. O TRILEMA DAS CHAVES (REFORMA VS. BANCO) ---
-    st.header("4. Reforma x Prazo x Parcela")
-    st.markdown("Chegou o dia de pegar as chaves. Aloque o seu 'Caixa Acumulado' para ver qual estratégia protege mais o seu patrimônio.")
+    # --- 4. SIMULAÇÃO DE ORÇAMENTO E POUPANÇA (MOVIDO PARA CIMA) ---
+    st.subheader("4. Simulação de Orçamento: Poupança x Obra")
+    col7, col8 = st.columns(2)
+    with col7:
+        orcamento_alvo = st.number_input("Orçamento Fixo Mensal (R$)", min_value=1000.0, value=6000.0, step=500.0)
+    with col8:
+        poupanca_minima = st.number_input("Piso Obrigatório de Poupança (R$)", min_value=0.0, value=1000.0, step=100.0)
 
-    caixa_disponivel = st.number_input("Dinheiro Total Acumulado nas Chaves (R$)", min_value=0.0, value=80000.0, step=5000.0)
+    lista_poupanca = []
+    lista_desembolso_real = []
+
+    for custo in df_pre_chaves['Custo Total Mensal (R$)']:
+        poupanca_projetada = orcamento_alvo - custo
+        if poupanca_projetada < poupanca_minima:
+            poupanca_real = poupanca_minima
+            desembolso_mensal = custo + poupanca_minima
+        else:
+            poupanca_real = poupanca_projetada
+            desembolso_mensal = orcamento_alvo
+            
+        lista_poupanca.append(poupanca_real)
+        lista_desembolso_real.append(desembolso_mensal)
+
+    df_pre_chaves['Poupança Gerada (R$)'] = lista_poupanca
+    df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
+
+    st.bar_chart(df_pre_chaves[['Custo Total Mensal (R$)', 'Poupança Gerada (R$)']])
+    
+    # OS TOTALIZADORES VOLTARAM AQUI
+    total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
+    total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
+    total_esforco_caixa = df_pre_chaves['Desembolso Real do Mês (R$)'].sum()
+
+    st.markdown("---")
+    st.subheader("📊 Resumo Consolidado do Período de Obras")
+    col_tot1, col_tot2, col_tot3 = st.columns(3)
+    col_tot1.metric("Total Acumulado (Poupança)", f"R$ {total_poupanca_geral:,.2f}")
+    col_tot2.metric("Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
+    col_tot3.metric("Esforço Total de Caixa (Gasto + Poupança)", f"R$ {total_esforco_caixa:,.2f}")
+
+    st.divider()
+
+    # --- 5. O TRILEMA DAS CHAVES (REFORMA VS. BANCO) ---
+    st.header("5. O Trilema das Chaves: Reforma x Prazo x Parcela")
+    st.markdown("Chegou o dia de pegar as chaves. Aloque o seu 'Caixa Acumulado' (calculado acima) para ver qual estratégia protege mais o seu patrimônio.")
+
+    # A INTELIGÊNCIA AQUI: O valor default puxa automaticamente o que foi poupado na Seção 4
+    caixa_disponivel = st.number_input("Dinheiro Total Acumulado nas Chaves (R$)", min_value=0.0, value=float(total_poupanca_geral), step=5000.0)
 
     col_tril1, col_tril2 = st.columns(2)
     with col_tril1:
@@ -223,34 +266,6 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
             else:
                 st.error("❌ Na Tabela PRICE, reduzir o valor da parcela é uma armadilha matemática. A velocidade de pagamento do principal cai tanto que você acaba devolvendo ao banco quase todo o lucro da amortização. Recomendamos focar estritamente na redução de prazo.")
     
-    st.divider()
-
-    st.subheader("5. Simulação de Orçamento: Poupança x Obra")
-    col7, col8 = st.columns(2)
-    with col7:
-        orcamento_alvo = st.number_input("Orçamento Fixo Mensal (R$)", min_value=1000.0, value=6000.0, step=500.0)
-    with col8:
-        poupanca_minima = st.number_input("Piso Obrigatório de Poupança (R$)", min_value=0.0, value=1000.0, step=100.0)
-
-    lista_poupanca = []
-    lista_desembolso_real = []
-
-    for custo in df_pre_chaves['Custo Total Mensal (R$)']:
-        poupanca_projetada = orcamento_alvo - custo
-        if poupanca_projetada < poupanca_minima:
-            poupanca_real = poupanca_minima
-            desembolso_mensal = custo + poupanca_minima
-        else:
-            poupanca_real = poupanca_projetada
-            desembolso_mensal = orcamento_alvo
-            
-        lista_poupanca.append(poupanca_real)
-        lista_desembolso_real.append(desembolso_mensal)
-
-    df_pre_chaves['Poupança Gerada (R$)'] = lista_poupanca
-    df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
-
-    st.bar_chart(df_pre_chaves[['Custo Total Mensal (R$)', 'Poupança Gerada (R$)']])
     st.divider()
 
     st.subheader("6. Visão Dinâmica Consolidada (Matriz Anual)")
@@ -414,3 +429,4 @@ else:
                      
             anos_cortados = meses_cortados / 12
             st.info(f"⏳ **Bônus na Caixa:** Essa injeção extra arrancou aproximadamente **{meses_cortados} parcelas** do final do seu contrato bancário (Você comprou de volta **{anos_cortados:.1f} anos** de vida).")
+            
