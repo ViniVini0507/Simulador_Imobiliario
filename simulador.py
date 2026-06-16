@@ -240,11 +240,12 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     limite_30 = renda_casal * 0.30
     limite_50 = renda_casal * 0.50
     
+    # Adicionando as linhas horizontais de referência
     if renda_casal > 0:
-        fig.add_hline(y=limite_30, line_dash="dash", line_color="orange", 
-                      annotation_text="⚠️ 30% da Renda (Alerta Saudável)", annotation_position="top left")
+        fig.add_hline(y=limite_30, line_dash="dash", line_color="gold", 
+                      annotation_text="⚠️ 30% da Renda", annotation_position="top left")
         fig.add_hline(y=limite_50, line_dash="dash", line_color="red", 
-                      annotation_text="🚨 50% da Renda (Risco Vermelho)", annotation_position="top left")
+                      annotation_text="🚨 50% da Renda", annotation_position="top left")
 
     fig.update_layout(
         barmode='stack', 
