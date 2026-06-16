@@ -19,11 +19,10 @@ perfil = st.sidebar.radio(
 )
 
 # Definindo os valores padrão de acordo com quem está usando o app
-# Definindo os valores padrão de acordo com quem está usando o app
 if perfil == "Cenário Vinicius & Ju":
-    default_imovel = 630000.0
-    default_entrada = 40000.0
-    default_mensal_const = 1480.0  
+    default_imovel = 717000.0
+    default_entrada = 55000.0
+    default_mensal_const = 0  
     default_meses_chaves = 30      
     default_renda = 14868.0
     default_prazo = 308          # O seu prazo original
@@ -101,7 +100,7 @@ if perfil == "Cenário João & Mari":
     
 else:
     # Cenário Vinicius & Ju
-    teto_aprovado_caixa = 636990.00
+    teto_aprovado_caixa = 636300.00
     saldo_necessario_real = valor_imovel - entrada_inicial
     
     # Lógica inteligente de teto: O banco financia o que você precisa, até o limite de 636k.
