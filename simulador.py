@@ -121,18 +121,20 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     saldo_devedor_chaves = saldo_financiado
 
+   # Exibe o diagnóstico na tela (Focado 100% na fase de Obras)
     col_res1, col_res2, col_res3 = st.columns(3)
-    col_res1.metric("Saldo Financiado (Banco)", f"R$ {saldo_financiado:,.2f}")
 
     if perfil == "Cenário João & Mari":
-        col_res2.metric("GAP Construtora (Buraco)", f"R$ {gap_construtora:,.2f}")
-        col_res3.metric("Nova Parcela Const. (Sem INCC)", f"R$ {mensal_construtora_calculada:,.2f}")
+        col_res1.metric("GAP Construtora (Buraco)", f"R$ {gap_construtora:,.2f}")
+        col_res2.metric("Parcela Construtora (Mensal)", f"R$ {mensal_construtora_calculada:,.2f}")
+        col_res3.metric("Teto Evolução Obra", f"R$ {teto_obra:,.2f}")
     else:
-        col_res2.metric("GAP Construtora (Descoberto)", f"R$ {gap_construtora:,.2f}")
+        col_res1.metric("GAP Construtora (Descoberto)", f"R$ {gap_construtora:,.2f}")
+        col_res2.metric("Parcela Mensal Construtora", f"R$ {mensal_construtora_calculada:,.2f}")
         col_res3.metric("Teto Evolução Obra", f"R$ {teto_obra:,.2f}")
         
     st.info(f"💡 A 1ª parcela do financiamento na entrega das chaves ({sistema_amortizacao}) será de **R$ {parcela_banco_inicial:,.2f}**.")
-
+    
     # CONSTRUTOR DO DATAFRAME PRÉ-CHAVES
     meses_array = np.arange(1, int(meses_ate_chaves) + 1)
     meses_carencia_eo = 2 
