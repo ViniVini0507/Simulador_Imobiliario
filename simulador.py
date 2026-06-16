@@ -29,6 +29,13 @@ with col3:
     taxa_juros_anual = st.number_input("Taxa de Juros Anual do Financiamento (%)", min_value=0.0, value=11.19, step=0.1)
     valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=0.0, step=50.0)
 
+# Sistema de Pagamento
+sistema_amortizacao = st.sidebar.selectbox(
+    "Sistema de Amortização",
+    ["PRICE", "SAC"],
+    help="SAC: parcelas decrescentes (amortização constante). PRICE: parcelas fixas no início."
+)
+
 if renda_casal <= 0:
     st.warning("⚠️ Insira a renda líquida mensal do casal para calcular o comprometimento.")
 
