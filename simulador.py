@@ -13,7 +13,7 @@ st.divider()
 st.sidebar.header("Configurações Gerais")
 perfil = st.sidebar.radio(
     "👤 Selecione o Perfil de Simulação", 
-    ["Cenário Vinicius & Ju", "Cenário João Pedro"]
+    ["Cenário Vinicius & Ju", "Cenário João & Mari"]
 )
 
 # Definindo os valores padrão de acordo com quem está usando o app
@@ -25,7 +25,7 @@ if perfil == "Cenário Vinicius & Ju":
     default_renda = 14868.0
     opcoes_amortizacao = ["SAC"]
 else:
-    default_imovel = 498000.0
+    default_imovel = 437000.0
     default_entrada = 62000.0      # 55k da entrada + 7k de FGTS
     default_mensal_const = 3538.0  # Parcela seca diluindo o GAP de 138k
     default_meses_chaves = 39      # Prazo da obra dele
