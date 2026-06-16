@@ -341,9 +341,9 @@ col_res_otm3.metric(
 
 # Lógica Dinâmica da Mensagem de Recomendação
 if gap_construtora > 0:
-    st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f} ** em receitas extras ao longo da obra. Como você tem uma dívida residual com a construtora (o GAP) de **R$ {gap_construtora:,.2f} **, o movimento mais inteligente é usar esses bônus anuais para antecipar as parcelas da construtora de trás para frente (ganhando o desconto de juros). Se sobrar algum valor desse bônus, você abate o financiamento da Caixa nas chaves.")
+    st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f}** em receitas extras ao longo da obra. Como você tem uma dívida residual com a construtora (o GAP) de **R$ {gap_construtora:,.2f}**, o movimento mais inteligente é usar esses bônus anuais para antecipar as parcelas da construtora de trás para frente (ganhando o desconto de juros). Se sobrar algum valor desse bônus, você abate o financiamento da Caixa nas chaves.")
 else:
-    st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f} ** em receitas extras ao longo da obra. Como o seu financiamento cobriu tudo e você NÃO tem dívida com a construtora (GAP zerado), guarde 100% desses bônus na renda fixa e use-os como uma 'pancada' de amortização no saldo devedor da Caixa logo na entrega das chaves, reduzindo anos do seu contrato.")
+    st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f}** em receitas extras ao longo da obra. Como o seu financiamento cobriu tudo e você NÃO tem dívida com a construtora (GAP zerado), guarde 100% desses bônus na renda fixa e use-os como uma 'pancada' de amortização no saldo devedor da Caixa logo na entrega das chaves, reduzindo anos do seu contrato.")
 
 
 
