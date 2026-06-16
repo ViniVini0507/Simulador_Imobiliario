@@ -295,4 +295,47 @@ col_tot1.metric("Total Acumulado (Poupança)", f"R$ {total_poupanca_geral:,.2f}"
 col_tot2.metric("Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
 col_tot3.metric("Esforço Total de Caixa (Gasto + Poupança)", f"R$ {total_esforco_caixa:,.2f}")
 
+# --- 9. PROJEÇÃO OTIMISTA (EVOLUÇÃO DE RENDA E BÔNUS) ---
+st.markdown("---")
+st.header("7. Cenário Otimista: Evolução de Renda e Receitas Extras")
+st.markdown("Simule o impacto de dissídios e bônus (PLR/13º) no seu poder de fogo futuro, mantendo a visão conservadora intacta no restante do app.")
+
+col_otm1, col_otm2 = st.columns(2)
+with col_otm1:
+    dissidio_anual = st.number_input("Reajuste Salarial Anual Esperado (%)", min_value=0.0, value=5.0, step=0.5)
+with col_otm2:
+    receita_extra_anual = st.number_input("Receitas Extras Anuais (13º, PLR, Bônus) (R$)", min_value=0.0, value=15000.0, step=1000.0)
+
+# Cálculos de projeção
+anos_obra = meses_ate_chaves / 12
+renda_projetada_chaves = renda_casal * ((1 + (dissidio_anual / 100)) ** anos_obra)
+total_extra_acumulado = receita_extra_anual * anos_obra
+
+# Calculando o alívio no "Squeeze" (o mês mais pesado da obra)
+pico_custo_mensal = df_pre_chaves['Custo Total Mensal (R$)'].iloc[-1] if not df_pre_chaves.empty else 0
+comprometimento_pico_atual = (pico_custo_mensal / renda_casal) * 100 if renda_casal > 0 else 0
+comprometimento_pico_projetado = (pico_custo_mensal / renda_projetada_chaves) * 100 if renda_projetada_chaves > 0 else 0
+
+col_res_otm1, col_res_otm2, col_res_otm3 = st.columns(3)
+col_res_otm1.metric(
+    "Renda Líquida nas Chaves", 
+    f"R$ {renda_projetada_chaves:,.2f}", 
+    f"+ R$ {renda_projetada_chaves - renda_casal:,.2f} no salário mensal"
+)
+col_res_otm2.metric(
+    "Caixa Extra Acumulado", 
+    f"R$ {total_extra_acumulado:,.2f}",
+    "Durante o período de obras"
+)
+
+# Essa métrica mostra como o mês mais difícil da obra fica mais fácil com a renda nova
+col_res_otm3.metric(
+    "Peso do Mês Crítico (Mês 30)", 
+    f"{comprometimento_pico_projetado:.1f}% da Renda", 
+    f"{comprometimento_pico_projetado - comprometimento_pico_atual:.1f}% de alívio vs. Cenário Base", 
+    delta_color="inverse"
+)
+
+st.success(f"💡 **Estratégia Tática:** Os **R$ {total_extra_acumulado:,.2f}** acumulados de receitas extras ao longo da obra praticamente empatam com aquele seu GAP total da construtora de R$ 25.700. Você pode usar os bônus anuais para aniquilar as parcelas da construtora de trás para frente, ganhando o desconto da taxa de 0,5% a.m., ou simplesmente guardar tudo e bater os R$ {total_extra_acumulado:,.2f} no saldo devedor da Caixa lá nas chaves.")
+
 
