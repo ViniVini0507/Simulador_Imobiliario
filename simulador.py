@@ -95,7 +95,7 @@ if perfil == "Cenário João & Mari":
     
 else:
     # Cenário Vinicius & Ju
-    teto_aprovado_caixa = 636990.00 # Valor exato de teto aprovado (LTV + Renda)
+    teto_aprovado_caixa = 636300.00 # Valor exato de teto aprovado (LTV + Renda)
     saldo_necessario_real = valor_imovel - entrada_inicial
     
     # Lógica inteligente de teto: O banco financia o que você precisa, até o limite de aprovação.
