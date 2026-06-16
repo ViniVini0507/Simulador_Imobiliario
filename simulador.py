@@ -45,6 +45,10 @@ else:
     default_taxa = 7.93          
     opcoes_amortizacao = ["PRICE", "SAC"]
 
+# Variáveis globais para compartilhar entre os módulos
+taxa_mensal = (default_taxa / 100) / 12  
+saldo_necessario = default_imovel - default_entrada
+
 # =====================================================================
 # MÓDULO 1: SIMULADOR (PRÉ-ASSINATURA)
 # =====================================================================
@@ -79,10 +83,6 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     st.markdown("---")
     st.header("2. Análise do Financiamento e Obra")
-
-    # MOTOR DE CÁLCULO INTERNO
-    taxa_mensal = (taxa_juros_anual / 100) / 12  
-    saldo_necessario = valor_imovel - entrada_inicial
 
     if perfil == "Cenário João & Mari":
         if sistema_amortizacao == "PRICE":
@@ -133,7 +133,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
         
     st.info(f"💡 A 1ª parcela do financiamento na entrega das chaves ({sistema_amortizacao}) será de **R$ {parcela_banco_inicial:,.2f}**.")
 
-    # CONSTRUTOR DO DATAFRAME PRÉ-CHAVES (Com carência)
+    # CONSTRUTOR DO DATAFRAME PRÉ-CHAVES
     meses_array = np.arange(1, int(meses_ate_chaves) + 1)
     meses_carencia_eo = 2 
 
@@ -270,14 +270,10 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     comprometimento_pico_projetado = (pico_custo_mensal / renda_projetada_chaves) * 100 if renda_projetada_chaves > 0 else 0
 
     col_res_otm1, col_res_otm2, col_res_otm3 = st.columns(3)
-    col_res_otm1.metric("Renda Líquida nas Chaves", f"R$ {renda_projetada_chaves:,.2f}", f"+ R$ {renda_projetada_chaves - renda_casal:,.2f} no salário mensal")
+    col_res_otm1.metric("Renda Líquida nas Chaves", f"R$ {renda_projetada_chaves:,.2f}", f"+ R$ {renda_projetada_chaves - renda_casal:,.2f} no salário")
     col_res_otm2.metric("Soma de PLR/13º (Durante a Obra)", f"R$ {total_extra_acumulado:,.2f}", "Dinheiro livre para usar como estratégia")
     col_res_otm3.metric("Peso do Mês Crítico (Mês Final)", f"{comprometimento_pico_projetado:.1f}% da Renda", f"{comprometimento_pico_projetado - comprometimento_pico_atual:.1f}% de alívio vs. Cenário Base", delta_color="inverse")
 
-    if gap_construtora > 0:
-        st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f}** em receitas extras. Como há um GAP de **R$ {gap_construtora:,.2f}** com a construtora, use esses bônus anuais para antecipar as parcelas de trás para frente, ganhando desconto de juros. Guarde a sobra para abater a Caixa nas chaves.")
-    else:
-        st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f}** em receitas extras. Como o seu GAP está zerado, guarde 100% desse valor e use como uma 'pancada' de amortização no saldo devedor da Caixa logo na entrega das chaves.")
 
 # =====================================================================
 # MÓDULO 2: CONTROLADORIA (PÓS-ASSINATURA)
@@ -286,14 +282,28 @@ else:
     st.header("📊 Painel de Controle Ativo da Obra")
     st.markdown("Atualize os dados mensalmente conforme os boletos reais chegarem para recalcular sua rota.")
     
-    # Busca o GAP inicial planejado baseado no perfil para servir de teto teórico inicial
+    # SETUP BASE ORÇADA PARA COMPARAÇÃO
     if perfil == "Cenário Vinicius & Ju":
         teto_aprovado = 636300.00
         gap_teorico_inicial = max(0, default_imovel - default_entrada - teto_aprovado)
         meses_totais = default_meses_chaves
+        parcela_banco_inicial = 8225.12
+        obra_inicial_base = 1480.52
     else:
-        gap_teorico_inicial = max(0, default_imovel - default_entrada - 298000.00)
+        teto_aprovado = 298000.00
+        gap_teorico_inicial = max(0, default_imovel - default_entrada - teto_aprovado)
         meses_totais = default_meses_chaves
+        parcela_banco_inicial = 2153.22
+        obra_inicial_base = 100.00
+
+    # Recriando a curva ideal (Orçada)
+    meses_array_base = np.arange(1, int(meses_totais) + 1)
+    if len(meses_array_base) > 2:
+        eo_ativa = np.linspace(obra_inicial_base, parcela_banco_inicial, len(meses_array_base) - 2)
+        eo_base = np.concatenate((np.zeros(2), eo_ativa))
+    else:
+        eo_base = np.zeros(len(meses_array_base))
+    parcela_const_base = gap_teorico_inicial / meses_totais
 
     st.subheader("1. O Raio-X do Mês")
     col_ctrl1, col_ctrl2, col_ctrl3 = st.columns(3)
@@ -302,50 +312,80 @@ else:
         mes_atual = st.number_input("Mês Atual da Obra", min_value=1, max_value=int(meses_totais), value=1, step=1)
         meses_restantes = meses_totais - mes_atual
     with col_ctrl2:
-        saldo_real_const = st.number_input("Saldo Devedor c/ Construtora Atualizado (R$)", min_value=0.0, value=float(gap_teorico_inicial), step=1000.0)
+        saldo_real_const = st.number_input("Saldo Devedor c/ Construtora (com INCC) (R$)", min_value=0.0, value=float(gap_teorico_inicial), step=1000.0)
     with col_ctrl3:
-        eo_paga_mes = st.number_input("Boleto Evolução de Obra Caixa neste Mês (R$)", min_value=0.0, value=0.0, step=100.0)
+        eo_paga_mes = st.number_input("Boleto Evolução de Obra Caixa neste Mês (R$)", min_value=0.0, value=float(eo_base[mes_atual-1]), step=100.0)
 
-    # Recalculando a rota da construtora
     if meses_restantes > 0:
         nova_parcela_const = saldo_real_const / meses_restantes
     else:
-        nova_parcela_const = saldo_real_const # Último mês paga tudo
-
+        nova_parcela_const = saldo_real_const 
     custo_real_mes = nova_parcela_const + eo_paga_mes
-
-    col_res_ctrl1, col_res_ctrl2, col_res_ctrl3 = st.columns(3)
-    col_res_ctrl1.metric("Parcela Construtora Recalculada", f"R$ {nova_parcela_const:,.2f}", "Diluindo o saldo pelos meses restantes", delta_color="off")
-    col_res_ctrl2.metric("Evolução de Obra Real", f"R$ {eo_paga_mes:,.2f}", "Custo bancário do mês", delta_color="off")
-    col_res_ctrl3.metric("Seu Esforço de Caixa Total", f"R$ {custo_real_mes:,.2f}", "Total a desembolsar neste mês", delta_color="inverse")
 
     st.progress(int((mes_atual / meses_totais) * 100), text=f"Progresso da Obra: {mes_atual} de {meses_totais} meses concluídos")
     st.divider()
 
-    st.subheader("2. Laboratório de Antecipação de Parcelas")
+    # --- NOVO: DASHBOARD REAL VS ORÇADO ---
+    st.subheader("2. Dashboard Real vs. Orçado (Termômetro do Mês)")
+    st.markdown("Veja se os boletos deste mês estão punindo o caixa além do planejado no simulador original.")
     
-    if perfil == "Cenário Vinicius & Ju":
-        st.markdown("Caiu um dinheiro extra? Simule o abatimento no saldo da construtora de trás para frente (**Taxa Fixa 0,5% a.m.**).")
+    orcado_eo_mes = eo_base[mes_atual - 1]
+    orcado_const_mes = parcela_const_base
+    orcado_total = orcado_eo_mes + orcado_const_mes
+    
+    col_dash1, col_dash2, col_dash3 = st.columns(3)
+    
+    # Delta inverso: Se o Real for MAIOR que o Orçado, fica vermelho (ruim). Se for menor, fica verde (bom).
+    dif_eo = eo_paga_mes - orcado_eo_mes
+    col_dash1.metric("Evolução de Obra (Caixa)", f"R$ {eo_paga_mes:,.2f}", f"R$ {dif_eo:,.2f} vs Orçado", delta_color="inverse")
+    
+    dif_const = nova_parcela_const - orcado_const_mes
+    col_dash2.metric("Parcela da Construtora", f"R$ {nova_parcela_const:,.2f}", f"R$ {dif_const:,.2f} vs Orçado", delta_color="inverse")
+    
+    dif_total = custo_real_mes - orcado_total
+    col_dash3.metric("Seu Desembolso Total", f"R$ {custo_real_mes:,.2f}", f"R$ {dif_total:,.2f} vs Orçado", delta_color="inverse")
+
+    if dif_total > 0:
+        st.error("⚠️ Atenção: A inflação (INCC) ou o ritmo da obra fizeram seu custo deste mês ficar **acima** do que você havia planejado no simulador.")
     else:
-        st.markdown("Caiu um dinheiro extra? Simule o abatimento no saldo da construtora para **fugir da inflação (INCC)**.")
+        st.success("✅ Excelente: Seu custo atual está aderente ou abaixo da nossa previsão conservadora inicial.")
+
+    st.divider()
+
+    # --- NOVO: O AMORTÔMETRO (GAMIFICAÇÃO) ---
+    st.subheader("3. Termômetro de Aportes 🚀")
+    if perfil == "Cenário Vinicius & Ju":
+        st.markdown("Caiu um dinheiro extra? Simule o impacto de jogar isso na dívida (Prioridade: Construtora com taxa de 0,5% a.m. -> Depois Caixa Econômica).")
+    else:
+        st.markdown("Caiu um dinheiro extra? Simule o impacto de jogar isso na dívida (Prioridade: Construtora para fugir do INCC -> Depois Caixa Econômica).")
     
     aporte_extra = st.number_input("Valor do Aporte Extra (PLR, Bônus, etc) (R$)", min_value=0.0, value=0.0, step=1000.0)
     
     if aporte_extra > 0:
-        if aporte_extra >= saldo_real_const:
-            st.success("🎉 **Quitação Total!** Esse aporte elimina 100% do seu GAP com a construtora. A partir do próximo mês, você paga APENAS a Evolução de Obra da Caixa.")
-        else:
+        if aporte_extra <= saldo_real_const:
             novo_saldo_const = saldo_real_const - aporte_extra
             parcela_aliviada = novo_saldo_const / meses_restantes
+            pct_gap_pago = (aporte_extra / saldo_real_const) * 100
             
-            col_ant1, col_ant2 = st.columns(2)
-            col_ant1.info(f"📉 **Efeito no Bolso:** Sua parcela mensal da construtora cai de R$ {nova_parcela_const:,.2f} para **R$ {parcela_aliviada:,.2f}** pelo resto da obra.")
+            st.progress(int(pct_gap_pago), text=f"Ataque à Construtora: {pct_gap_pago:.1f}% do saldo devedor atual foi aniquilado!")
+            st.info(f"📉 **Alívio Imediato:** Sua parcela mensal da construtora cai de R$ {nova_parcela_const:,.2f} para **R$ {parcela_aliviada:,.2f}**.")
             
+        else:
+            sobra_pra_caixa = aporte_extra - saldo_real_const
+            st.progress(100, text="Construtora 100% ELIMINADA! 🎉 O restante foi jogado para a Caixa!")
+            
+            st.success(f"🎯 **Ataque Duplo!** Você quitou toda a construtora, zerando sua parcela mensal com eles. A sobra de **R$ {sobra_pra_caixa:,.2f}** bateu direto no saldo da Caixa Econômica.")
+            
+            # Calculando impacto da sobra na Caixa
             if perfil == "Cenário Vinicius & Ju":
-                # Estimativa de economia de juros de 0.5% a.m. exclusiva para Vinicius & Ju
-                economia_juros = aporte_extra * 0.005 * (meses_restantes / 2)
-                col_ant2.success(f"💰 **Economia de Juros:** Ao antecipar, você deixa de pagar aproximadamente **R$ {economia_juros:,.2f}** de juros puros (0,5% a.m.) para a construtora.")
+                 amortizacao_mensal_caixa = teto_aprovado / default_prazo
+                 meses_cortados = int(sobra_pra_caixa / amortizacao_mensal_caixa)
             else:
-                # O ganho do João Pedro é blindar o dinheiro contra o INCC
-                col_ant2.success("🛡️ **Fuga do INCC:** Ao antecipar esse valor, você 'congela' essa parte da dívida e blinda seu dinheiro contra os reajustes mensais da inflação da construção civil.")
-
+                 if (teto_aprovado * taxa_mensal) < parcela_banco_inicial:
+                     novo_p = -math.log(1 - ((teto_aprovado - sobra_pra_caixa) * taxa_mensal) / parcela_banco_inicial) / math.log(1 + taxa_mensal)
+                     meses_cortados = int(default_prazo) - int(round(novo_p))
+                 else:
+                     meses_cortados = 0
+                     
+            anos_cortados = meses_cortados / 12
+            st.info(f"⏳ **Bônus na Caixa:** Essa injeção extra arrancou aproximadamente **{meses_cortados} parcelas** do final do seu contrato bancário (Você comprou de volta **{anos_cortados:.1f} anos** de vida).")
