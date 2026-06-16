@@ -164,7 +164,8 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     if renda_casal > 0:
         comprometimento_renda = (parcela_banco_inicial / renda_casal) * 100
-        if comprometimento_renda > 30:
+        ifPlatform = comprometimento_renda > 30
+        if ifPlatform:
             st.warning(f"⚠️ A primeira parcela compromete {comprometimento_renda:.1f}% da renda informada. O limite dos bancos é 30% da renda bruta.")
         else:
             st.success(f"✅ Comprometimento de renda em {comprometimento_renda:.1f}%.")
@@ -207,52 +208,49 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     df_pre_chaves['Poupança Gerada (R$)'] = lista_poupanca
     df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
 
-    # --- VISÃO FACILITADA DOS TOTAIS ---
+    # --- CORREÇÃO AQUI: Nomes unificados para evitar NameError ---
     st.markdown("### Resumo Consolidado do Período")
-    total_eo = df_pre_chaves['Evolução de Obra (R$)'].sum()
-    total_const = df_pre_chaves['Parcela Construtora (R$)'].sum()
-    total_poup = df_pre_chaves['Poupança Gerada (R$)'].sum()
+    total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
+    total_const_geral = df_pre_chaves['Parcela Construtora (R$)'].sum()
+    total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
+    total_esforco_caixa = df_pre_chaves['Desembolso Real do Mês (R$)'].sum()
 
     col_t1, col_t2, col_t3 = st.columns(3)
-    col_t1.metric("1. Evolução de Obra (Total)", f"R$ {total_eo:,.2f}")
-    col_t2.metric("2. Parcela Construtora (Total)", f"R$ {total_const:,.2f}")
-    col_t3.metric("3. Poupança Acumulada (Total)", f"R$ {total_poup:,.2f}")
+    col_t1.metric("1. Evolução de Obra (Total)", f"R$ {total_eo_geral:,.2f}")
+    col_t2.metric("2. Parcela Construtora (Total)", f"R$ {total_const_geral:,.2f}")
+    col_t3.metric("3. Poupança Acumulada (Total)", f"R$ {total_poupanca_geral:,.2f}")
 
     st.divider()
 
     # --- GRÁFICO EMPILHADO COM PLOTLY E LINHAS DE RISCO ---
     st.markdown("### Composição Mensal e Alertas de Risco")
     
-    # Criando o gráfico de barras empilhadas com as 3 cores separadas
     fig = px.bar(
         df_pre_chaves, 
         x='Mês', 
         y=['Parcela Construtora (R$)', 'Evolução de Obra (R$)', 'Poupança Gerada (R$)'],
         labels={'value': 'Orçamento Mensal (R$)', 'variable': 'Composição'},
         color_discrete_map={
-            'Parcela Construtora (R$)': '#1f77b4',  # Azul (Base fixa)
-            'Evolução de Obra (R$)': '#ff7f0e',      # Laranja (Sobe com o tempo)
-            'Poupança Gerada (R$)': '#2ca02c'        # Verde (O que sobra pra você)
+            'Parcela Construtora (R$)': '#1f77b4',  
+            'Evolução de Obra (R$)': '#ff7f0e',      
+            'Poupança Gerada (R$)': '#2ca02c'        
         }
     )
     
-    # Calculando as travas de risco baseadas na Renda Líquida
     limite_30 = renda_casal * 0.30
     limite_50 = renda_casal * 0.50
     
-    # Adicionando as linhas horizontais de referência
     if renda_casal > 0:
         fig.add_hline(y=limite_30, line_dash="dash", line_color="orange", 
                       annotation_text="⚠️ 30% da Renda (Alerta Saudável)", annotation_position="top left")
         fig.add_hline(y=limite_50, line_dash="dash", line_color="red", 
                       annotation_text="🚨 50% da Renda (Risco Vermelho)", annotation_position="top left")
 
-    # Ajustes finos de layout
     fig.update_layout(
         barmode='stack', 
         legend_title_text='', 
         xaxis_title="Meses até as Chaves",
-        hovermode="x unified" # Mostra o detalhe dos 3 valores ao passar o mouse
+        hovermode="x unified"
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -271,7 +269,6 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     st.header("5. Reforma x Prazo x Parcela")
     st.markdown("Chegou o dia de pegar as chaves. Aloque o seu 'Caixa Acumulado' (calculado acima) para ver qual estratégia protege mais o seu patrimônio.")
 
-    # A INTELIGÊNCIA AQUI: O valor default puxa automaticamente o que foi poupado na Seção 4
     caixa_disponivel = st.number_input("Dinheiro Total Acumulado nas Chaves (R$)", min_value=0.0, value=float(total_poupanca_geral), step=5000.0)
 
     col_tril1, col_tril2 = st.columns(2)
@@ -281,7 +278,6 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
         saldo_para_banco = caixa_disponivel - reserva_reforma
         st.metric("2. Saldo Livre para Atacar o Banco", f"R$ {saldo_para_banco:,.2f}", "Poder de fogo pós-reforma")
 
-    # NOVO: Alerta visual explicando os 60% e a liberdade de alteração
     st.info("💡 **Por que 60%?** O sistema sugere reservar automaticamente 60% do seu caixa para garantir a reforma, os móveis e o ar-condicionado, evitando que você se descapitalize e caia em juros de cartão de crédito. **Sinta-se livre para digitar o valor exato no campo acima caso o seu orçamento real fique mais barato ou mais caro.**")
 
     if saldo_para_banco > 0:
@@ -310,7 +306,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
                 nova_primeira_parcela = nova_amortizacao_mensal + (novo_saldo_devedor * taxa_mensal)
                 
                 st.success(f"📉 **Efeito na Parcela:** Sua 1ª parcela despenca de R$ {parcela_banco_inicial:,.2f} para **R$ {nova_primeira_parcela:,.2f}**.")
-                st.warning(f"⚠️ O prazo continua em {int(prazo_financiamento)} meses. Você ganha muito fôlego mensal, mas deixa de economizar centenas de milhares de reais em juros se comparado à redução de prazo.")
+                st.warning(f"⚠️ O prazo continua em {int(prazo_financiamento)} meses. Você ganha muito fôlego mensal, mas deixa de economizar centenas de milhares de reais in juros se comparado à redução de prazo.")
                 
         elif sistema_amortizacao == "PRICE":
             if "Prazo" in estrategia_banco:
@@ -370,7 +366,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     col_res_otm1, col_res_otm2, col_res_otm3 = st.columns(3)
     col_res_otm1.metric("Renda Líquida nas Chaves", f"R$ {renda_projetada_chaves:,.2f}", f"+ R$ {renda_projetada_chaves - renda_casal:,.2f} no salário")
     col_res_otm2.metric("Soma de PLR/13º (Durante a Obra)", f"R$ {total_extra_acumulado:,.2f}", "Dinheiro livre para usar como estratégia")
-    col_res_otm3.metric("Peso do Mês Crítico (Mês Final)", f"{comprometimento_pico_projetado:.1f}% da Renda", f"{comprometimento_pico_projetado - comprometimento_pico_atual:.1f}% de alívio vs. Cenário Base", delta_color="inverse")
+    col_res_otm3.metric("Peso do Mês Crítico (Mês Final)", f"{comprometimento_pico_projetado:.1f}% da Renda", f"{comprometimento_pico_projetado -奧omprometimento_pico_atual:.1f}% de alívio vs. Cenário Base", delta_color="inverse")
 
 
 # =====================================================================
@@ -388,7 +384,7 @@ else:
         parcela_banco_inicial = 8225.12
         obra_inicial_base = 1480.52
     else:
-        teto_aprovado = 298000.00
+        teto_aprovado = 298622.00
         gap_teorico_inicial = max(0, default_imovel - default_entrada - teto_aprovado)
         meses_totais = default_meses_chaves
         parcela_banco_inicial = 2153.22
@@ -433,7 +429,6 @@ else:
     
     col_dash1, col_dash2, col_dash3 = st.columns(3)
     
-    # Delta inverso: Se o Real for MAIOR que o Orçado, fica vermelho (ruim). Se for menor, fica verde (bom).
     dif_eo = eo_paga_mes - orcado_eo_mes
     col_dash1.metric("Evolução de Obra (Caixa)", f"R$ {eo_paga_mes:,.2f}", f"R$ {dif_eo:,.2f} vs Orçado", delta_color="inverse")
     
@@ -474,7 +469,6 @@ else:
             
             st.success(f"🎯 **Ataque Duplo!** Você quitou toda a construtora, zerando sua parcela mensal com eles. A sobra de **R$ {sobra_pra_caixa:,.2f}** bateu direto no saldo da Caixa Econômica.")
             
-            # Calculando impacto da sobra na Caixa
             if perfil == "Cenário Vinicius & Ju":
                  amortizacao_mensal_caixa = teto_aprovado / default_prazo
                  meses_cortados = int(sobra_pra_caixa / amortizacao_mensal_caixa)
@@ -487,4 +481,8 @@ else:
                      
             anos_cortados = meses_cortados / 12
             st.info(f"⏳ **Bônus na Caixa:** Essa injeção extra arrancou aproximadamente **{meses_cortados} parcelas** do final do seu contrato bancário (Você comprou de volta **{anos_cortados:.1f} anos** de vida).")
-            
+
+
+
+
+
