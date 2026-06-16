@@ -62,60 +62,54 @@ sistema_amortizacao = st.sidebar.selectbox(
 if renda_casal <= 0:
     st.warning("⚠️ Insira a renda líquida mensal do casal para calcular o comprometimento.")
 
-# Cálculos Base O saldo devedor congela no momento do financiamento (assumindo financiamento na planta/crédito associativo)
-total_pago_construtora = entrada_inicial + (mensal_construtora * meses_ate_chaves) + (anual_construtora * (meses_ate_chaves // 12))
-saldo_devedor_chaves = valor_imovel - total_pago_construtora
+st.markdown("---")
+st.header("2. Análise do Financiamento e Obra")
 
-# Ajuste cirúrgico: use uma taxa que reflita o custo efetivo total (CET)
-# A Caixa costuma aplicar o CET. Se os juros nominais são 9.5%, o CET é maior.
-taxa_juros_mensal = (1 + (taxa_juros_anual / 100)) ** (1/12) - 1
-# Multiplique por um fator de ajuste (ex: 1.15) para incluir seguros (MIP/DFI) e taxas
-taxa_juros_mensal = taxa_juros_mensal * 1.15
-juros_maximo_obra = saldo_devedor_chaves * taxa_juros_mensal
+# --- 3. MOTOR DE CÁLCULO INTERNO ---
+taxa_mensal = (taxa_juros_anual / 100) / 12  
+saldo_necessario = valor_imovel - entrada_inicial
 
-# 2. Fluxo de Caixa Pré-Chaves
-st.header("2. Fluxo de Caixa Pré-Chaves")
-
-# Ajuste Cirúrgico: Valores reais cravados conforme a tabela oficial da construtora
-# Iniciando em Agosto (R$ 1.480,52) e indo até o teto de 100% (R$ 8.225,12)
-obra_inicial = 1480.52
-teto_conservador_obra = 8225.12 
-
-meses = np.arange(1, meses_ate_chaves + 1)
-
-# Inicializa o array de evolução de obra com zeros (Junho e Julho blindados/zerados)
-evolucao_obra = np.zeros(meses_ate_chaves)
-
-# Preenche com a linha de evolução linear a partir de Agosto (Mês 3)
-if meses_ate_chaves > 2:
-    evolucao_obra[2:] = np.linspace(obra_inicial, teto_conservador_obra, meses_ate_chaves - 2)
-
-parcelas_mensais = np.full(meses_ate_chaves, mensal_construtora)
-
-# Anual diluída
-valor_anual_diluido = anual_construtora / 12
-parcelas_anuais_diluidas = np.full(meses_ate_chaves, valor_anual_diluido)
-
-df_pre_chaves = pd.DataFrame({
-    'Mês': meses,
-    'Parcela Mensal Const. (R$)': parcelas_mensais,
-    'Parcela Anual Diluída (R$)': parcelas_anuais_diluidas,
-    'Evolução de Obra (R$)': evolucao_obra
-}).set_index('Mês')
-
-df_pre_chaves['Custo Total Mensal (R$)'] = df_pre_chaves.sum(axis=1)
-
-st.bar_chart(df_pre_chaves[['Parcela Mensal Const. (R$)', 'Evolução de Obra (R$)', 'Parcela Anual Diluída (R$)']])
-
-col_metric1, col_metric2 = st.columns(2)
-col_metric1.metric("Maior parcela na fase de obras (R$)", f"R$ {df_pre_chaves['Custo Total Mensal (R$)'].max():,.2f}")
-if itbi_construtora == "Não":
-    custo_documentacao = valor_imovel * 0.05 # Estimativa de 5%
-    col_metric2.metric("Reserva Extra para Documentação (Estimativa 5%)", f"R$ {custo_documentacao:,.2f}")
+# Definindo os tetos e a matemática de acordo com o perfil
+if perfil == "Cenário João Pedro":
+    if sistema_amortizacao == "PRICE":
+        saldo_financiado = 298000.00
+        # Fórmula PRICE: Parcela Fixa
+        parcela_banco_inicial = saldo_financiado * (taxa_mensal * (1 + taxa_mensal)**prazo_financiamento) / ((1 + taxa_mensal)**prazo_financiamento - 1)
+    else: 
+        # SAC João Pedro
+        saldo_financiado = 250000.00
+        amortizacao = saldo_financiado / prazo_financiamento
+        parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
+        
+    # O João Pedro tem um "Buraco" (GAP) com a construtora que precisa ser diluído nos meses de obra
+    gap_construtora = valor_imovel - entrada_inicial - saldo_financiado
+    mensal_construtora_calculada = gap_construtora / meses_ate_chaves
+    teto_obra = parcela_banco_inicial
+    obra_inicial = 100.00 # A EO começa pequena no primeiro mês
+    
 else:
-    col_metric2.metric("Reserva Extra para Documentação", "Isento (Pago pela Construtora)")
+    # Cenário Vinicius & Ju
+    saldo_financiado = saldo_necessario
+    amortizacao = saldo_financiado / prazo_financiamento
+    parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
+    
+    # Mantém os valores que vocês já preencheram no input
+    mensal_construtora_calculada = mensal_construtora 
+    teto_obra = parcela_banco_inicial
+    obra_inicial = 1480.52 # O valor inicial que já estava na sua tabela
 
-st.divider()
+# Exibe o diagnóstico executivo na tela antes do gráfico
+col_res1, col_res2, col_res3 = st.columns(3)
+col_res1.metric("Saldo Financiado (Banco)", f"R$ {saldo_financiado:,.2f}")
+
+if perfil == "Cenário João Pedro":
+    col_res2.metric("GAP Construtora (Buraco)", f"R$ {gap_construtora:,.2f}")
+    col_res3.metric("Nova Parcela Const. (Sem INCC)", f"R$ {mensal_construtora_calculada:,.2f}")
+else:
+    col_res2.metric("Parcela Construtora", f"R$ {mensal_construtora_calculada:,.2f}")
+    col_res3.metric("Teto Evolução Obra", f"R$ {teto_obra:,.2f}")
+    
+st.info(f"💡 A 1ª parcela do financiamento na entrega das chaves ({sistema_amortizacao}) será de **R$ {parcela_banco_inicial:,.2f}**.")
 
 # 3. Financiamento Pós-Chaves (Tabela SAC)
 st.header("3. Financiamento Pós-Chaves (Tabela SAC)")
