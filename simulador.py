@@ -26,8 +26,8 @@ if perfil == "Cenário Vinicius & Ju":
     default_renda = 14868.0
     opcoes_amortizacao = ["SAC"]
 else:
-    default_imovel = 437000.0      # Atualizado para 437k
-    default_entrada = 62000.0      
+    default_imovel = 437000.0      
+    default_entrada = 65000.0      # Atualizado para 65k (Recursos próprios)
     default_mensal_const = 0.0     # Será calculado automaticamente pelo motor
     default_meses_chaves = 39      
     default_renda = 7500.0
@@ -73,13 +73,14 @@ saldo_necessario = valor_imovel - entrada_inicial
 if perfil == "Cenário João & Mari":
     if sistema_amortizacao == "PRICE":
         saldo_financiado = 298000.00
-        parcela_banco_inicial = saldo_financiado * (taxa_mensal * (1 + taxa_mensal)**prazo_financiamento) / ((1 + taxa_mensal)**prazo_financiamento - 1)
-        ultima_parcela_banco = parcela_banco_inicial # PRICE é fixa
+        # Valores cravados conforme aprovação real da Caixa (Crédito Associativo)
+        parcela_banco_inicial = 2135.00 
+        ultima_parcela_banco = 2135.00
     else: 
-        saldo_financiado = 250000.00
+        saldo_financiado = 250000.00 # Teto se insistirem na SAC
         amortizacao = saldo_financiado / prazo_financiamento
         parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
-        ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal) # Aproximação da última na SAC
+        ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal) # Aproximação
         
     gap_construtora = valor_imovel - entrada_inicial - saldo_financiado
     mensal_construtora_calculada = gap_construtora / meses_ate_chaves
@@ -87,6 +88,7 @@ if perfil == "Cenário João & Mari":
     obra_inicial = 100.00 
     
 else:
+    # Cenário Vinicius & Ju
     saldo_financiado = saldo_necessario
     amortizacao = saldo_financiado / prazo_financiamento
     parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
@@ -129,7 +131,7 @@ st.header(f"3. Financiamento Pós-Chaves ({sistema_amortizacao})")
 
 col4, col5, col6 = st.columns(3)
 col4.metric("Saldo Devedor a Financiar (R$)", f"R$ {saldo_devedor_chaves:,.2f}")
-col5.metric("Primeira Parcela (Exata)", f"R$ {parcela_banco_inicial:,.2f}")
+col5.metric("Primeira Parcela (Exata/Aprovada)", f"R$ {parcela_banco_inicial:,.2f}")
 col6.metric("Última Parcela (Estimada)", f"R$ {ultima_parcela_banco:,.2f}")
 
 if renda_casal > 0:
@@ -160,7 +162,7 @@ if meta_amortizacao > 0:
             anos_reduzidos = parcelas_reduzidas / 12
             st.success(f"⏳ **Alternativa - Reduzir Prazo:** Quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de **{anos_reduzidos:.1f} anos**).")
     else:
-        st.info("ℹ️ Na Tabela PRICE, a amortização extraordinária recalcula a parcela fixa inteira ou o prazo de forma não linear. Sugerimos focar em redução de prazo.")
+        st.info("ℹ️ Na Tabela PRICE, a amortização extraordinária (lance extra com FGTS ou dinheiro) vai inteiramente para abater o Saldo Devedor. A melhor estratégia é optar por reduzir o prazo, eliminando o peso gigantesco dos juros compostos que existem no final do contrato.")
         
 st.divider()
 
