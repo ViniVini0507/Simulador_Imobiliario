@@ -170,13 +170,22 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     st.divider()
 
-    # --- 4. SIMULAÇÃO DE ORÇAMENTO E POUPANÇA (MOVIDO PARA CIMA) ---
+    # --- 4. SIMULAÇÃO DE ORÇAMENTO E POUPANÇA (Adaptável por Perfil) ---
     st.subheader("4. Simulação de Orçamento: Poupança x Obra")
+    
+    # Define valores baseados no perfil
+    if perfil == "Cenário Vinicius & Ju":
+        default_orc = 6000.0
+        default_piso = 1000.0
+    else:
+        default_orc = 2500.0
+        default_piso = 250.0
+
     col7, col8 = st.columns(2)
     with col7:
-        orcamento_alvo = st.number_input("Orçamento Fixo Mensal (R$)", min_value=1000.0, value=6000.0, step=500.0)
+        orcamento_alvo = st.number_input("Orçamento Fixo Mensal (R$)", min_value=1000.0, value=default_orc, step=500.0)
     with col8:
-        poupanca_minima = st.number_input("Piso Obrigatório de Poupança (R$)", min_value=0.0, value=1000.0, step=100.0)
+        poupanca_minima = st.number_input("Piso Obrigatório de Poupança (R$)", min_value=0.0, value=default_piso, step=50.0)
 
     lista_poupanca = []
     lista_desembolso_real = []
@@ -192,6 +201,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
             
         lista_poupanca.append(poupanca_real)
         lista_desembolso_real.append(desembolso_mensal)
+        
 
     df_pre_chaves['Poupança Gerada (R$)'] = lista_poupanca
     df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
