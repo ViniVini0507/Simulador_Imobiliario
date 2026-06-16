@@ -19,19 +19,24 @@ perfil = st.sidebar.radio(
 )
 
 # Definindo os valores padrão de acordo com quem está usando o app
+# Definindo os valores padrão de acordo com quem está usando o app
 if perfil == "Cenário Vinicius & Ju":
     default_imovel = 630000.0
     default_entrada = 40000.0
     default_mensal_const = 1480.0  
     default_meses_chaves = 30      
     default_renda = 14868.0
+    default_prazo = 308          # O seu prazo original
+    default_taxa = 11.19         # A sua taxa original
     opcoes_amortizacao = ["SAC"]
 else:
     default_imovel = 437000.0      
-    default_entrada = 65000.0      # Atualizado para 65k (Recursos próprios)
-    default_mensal_const = 0.0     # Será calculado automaticamente pelo motor
+    default_entrada = 65000.0      
+    default_mensal_const = 0.0     
     default_meses_chaves = 39      
     default_renda = 7500.0
+    default_prazo = 420          # NOVO: 420 meses (35 anos)
+    default_taxa = 7.93          # NOVO: Taxa subsidiada
     opcoes_amortizacao = ["PRICE", "SAC"]
 
 # --- 2. INPUTS NA TELA PRINCIPAL ---
@@ -50,8 +55,9 @@ with col2:
 
 with col3:
     renda_casal = st.number_input("Renda Líquida Mensal", min_value=0.0, value=default_renda, step=500.0)
-    prazo_financiamento = st.number_input("Prazo do Financiamento (Meses)", min_value=1, value=308, step=12)
-    taxa_juros_anual = st.number_input("Taxa de Juros Anual do Financiamento (%)", min_value=0.0, value=11.19, step=0.1)
+    # Aqui os valores 'value' foram atualizados para puxar a configuração do perfil
+    prazo_financiamento = st.number_input("Prazo do Financiamento (Meses)", min_value=1, value=default_prazo, step=12)
+    taxa_juros_anual = st.number_input("Taxa de Juros Anual do Financiamento (%)", min_value=0.0, value=default_taxa, step=0.1)
     valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=0.0, step=50.0)
 
 # Sistema de Pagamento 
