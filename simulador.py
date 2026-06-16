@@ -2,6 +2,25 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
+# --- 1. SELETOR DE PERFIL ---
+st.sidebar.header("Configurações Gerais")
+perfil = st.sidebar.radio(
+    "👤 Selecione o Perfil de Simulação", 
+    ["Cenário Vinicius & Ju", "Cenário João & Mari"]
+)
+
+# Definindo os valores iniciais dependendo de quem está usando
+if perfil == "Cenário Vinicius & Ju":
+    default_imovel = 630000.00
+    default_renda = 14868.00
+    default_entrada = 40000.00
+    opcoes_amortizacao = ["SAC"]
+else:
+    default_imovel = 437000.00
+    default_renda = 7500.00
+    default_entrada = 62000.00 # Entrada + FGTS
+    opcoes_amortizacao = ["PRICE", "SAC"]
+
 # Configuração da Página
 st.set_page_config(page_title="Simulador de Imóvel na Planta", page_icon="🏢", layout="wide")
 
@@ -9,30 +28,53 @@ st.title("🏢 Simulador de Compra de Imóvel na Planta")
 st.markdown("Projete seu fluxo de caixa até a entrega das chaves e o financiamento pós-chaves.")
 st.divider()
 
-# 1. Entradas de Dados (Sidebar ou Colunas)
+# --- NOVO: SELETOR DE PERFIL (Fica na barra lateral) ---
+st.sidebar.header("Configurações Gerais")
+perfil = st.sidebar.radio(
+    "👤 Selecione o Perfil de Simulação", 
+    ["Cenário Vinicius & Ju", "Cenário João Pedro"]
+)
+
+# Definindo os valores padrão de acordo com quem está usando o app
+if perfil == "Cenário Vinicius & Ju":
+    default_imovel = 630000.0
+    default_entrada = 40000.0
+    default_mensal_const = 1480.0  # Parcela base que você tinha antes
+    default_meses_chaves = 30      # Prazo aproximado até o fim de 2028
+    default_renda = 14868.0
+    opcoes_amortizacao = ["SAC"]
+else:
+    default_imovel = 498000.0
+    default_entrada = 62000.0      # 55k da entrada + 7k de FGTS
+    default_mensal_const = 3538.0  # Parcela seca diluindo o GAP de 138k
+    default_meses_chaves = 39      # Prazo da obra dele
+    default_renda = 7500.0
+    opcoes_amortizacao = ["PRICE", "SAC"]
+
+# --- O SEU LAYOUT MANTIDO (Apenas com o 'value' atualizado) ---
 st.header("1. Parâmetros do Negócio")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    valor_imovel = st.number_input("Valor Total do Imóvel (R$)", min_value=0.0, value=0.0, step=10000.0)
-    entrada_inicial = st.number_input("Valor da Entrada (Aporte Inicial) (R$)", min_value=0.0, value=0.0, step=1000.0)
+    valor_imovel = st.number_input("Valor Total do Imóvel (R$)", min_value=0.0, value=default_imovel, step=10000.0)
+    entrada_inicial = st.number_input("Valor da Entrada (Aporte Inicial) (R$)", min_value=0.0, value=default_entrada, step=1000.0)
     itbi_construtora = st.radio("ITBI + Registro pagos pela construtora?", ["Sim", "Não"])
 
 with col2:
-    mensal_construtora = st.number_input("Valor da Parcela Mensal (Pré-chaves)", min_value=0.0, value=0.0, step=100.0)
+    mensal_construtora = st.number_input("Valor da Parcela Mensal (Pré-chaves)", min_value=0.0, value=default_mensal_const, step=100.0)
     anual_construtora = st.number_input("Valor da Parcela Anual", min_value=0.0, value=0.0, step=500.0)
-    meses_ate_chaves = st.number_input("Meses até a Entrega das Chaves", min_value=1, value=24, step=1)
+    meses_ate_chaves = st.number_input("Meses até a Entrega das Chaves", min_value=1, value=default_meses_chaves, step=1)
 
 with col3:
-    renda_casal = st.number_input("Renda Líquida Mensal do Casal", min_value=0.0, value=0.0, step=500.0)
+    renda_casal = st.number_input("Renda Líquida Mensal", min_value=0.0, value=default_renda, step=500.0)
     prazo_financiamento = st.number_input("Prazo do Financiamento (Meses)", min_value=1, value=308, step=12)
     taxa_juros_anual = st.number_input("Taxa de Juros Anual do Financiamento (%)", min_value=0.0, value=11.19, step=0.1)
     valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=0.0, step=50.0)
 
-# Sistema de Pagamento
+# Sistema de Pagamento (Dinâmico conforme o perfil)
 sistema_amortizacao = st.sidebar.selectbox(
     "Sistema de Amortização",
-    ["PRICE", "SAC"],
+    opcoes_amortizacao,
     help="SAC: parcelas decrescentes (amortização constante). PRICE: parcelas fixas no início."
 )
 
