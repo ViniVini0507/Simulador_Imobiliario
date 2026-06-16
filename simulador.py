@@ -2,25 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# --- 1. SELETOR DE PERFIL ---
-st.sidebar.header("Configurações Gerais")
-perfil = st.sidebar.radio(
-    "👤 Selecione o Perfil de Simulação", 
-    ["Cenário Vinicius & Ju", "Cenário João & Mari"]
-)
-
-# Definindo os valores iniciais dependendo de quem está usando
-if perfil == "Cenário Vinicius & Ju":
-    default_imovel = 630000.00
-    default_renda = 14868.00
-    default_entrada = 40000.00
-    opcoes_amortizacao = ["SAC"]
-else:
-    default_imovel = 437000.00
-    default_renda = 7500.00
-    default_entrada = 62000.00 # Entrada + FGTS
-    opcoes_amortizacao = ["PRICE", "SAC"]
-
 # Configuração da Página
 st.set_page_config(page_title="Simulador de Imóvel na Planta", page_icon="🏢", layout="wide")
 
