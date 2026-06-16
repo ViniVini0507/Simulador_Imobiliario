@@ -366,8 +366,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     col_res_otm1, col_res_otm2, col_res_otm3 = st.columns(3)
     col_res_otm1.metric("Renda Líquida nas Chaves", f"R$ {renda_projetada_chaves:,.2f}", f"+ R$ {renda_projetada_chaves - renda_casal:,.2f} no salário")
     col_res_otm2.metric("Soma de PLR/13º (Durante a Obra)", f"R$ {total_extra_acumulado:,.2f}", "Dinheiro livre para usar como estratégia")
-    col_res_otm3.metric("Peso do Mês Crítico (Mês Final)", f"{comprometimento_pico_projetado:.1f}% da Renda", f"{comprometimento_pico_projetado -奧omprometimento_pico_atual:.1f}% de alívio vs. Cenário Base", delta_color="inverse")
-
+    col_res_otm3.metric("Peso do Mês Crítico (Mês Final)", f"{comprometimento_pico_projetado:.1f}% da Renda", f"{comprometimento_pico_projetado - comprometimento_pico_atual:.1f}% de alívio vs. Cenário Base", delta_color="inverse")
 
 # =====================================================================
 # MÓDULO 2: CONTROLADORIA (PÓS-ASSINATURA)
