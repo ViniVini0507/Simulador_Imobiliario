@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import datetime
 
 # Configuração da Página
 st.set_page_config(page_title="Simulador de Imóvel na Planta", page_icon="🏢", layout="wide")
@@ -9,7 +10,7 @@ st.title("🏢 Simulador de Compra de Imóvel na Planta")
 st.markdown("Projete seu fluxo de caixa até a entrega das chaves e o financiamento pós-chaves.")
 st.divider()
 
-# --- NOVO: SELETOR DE PERFIL (Fica na barra lateral) ---
+# --- 1. SELETOR DE PERFIL (Barra lateral) ---
 st.sidebar.header("Configurações Gerais")
 perfil = st.sidebar.radio(
     "👤 Selecione o Perfil de Simulação", 
@@ -20,19 +21,19 @@ perfil = st.sidebar.radio(
 if perfil == "Cenário Vinicius & Ju":
     default_imovel = 630000.0
     default_entrada = 40000.0
-    default_mensal_const = 1480.0  # Parcela base que você tinha antes
-    default_meses_chaves = 30      # Prazo aproximado até o fim de 2028
+    default_mensal_const = 1480.0  
+    default_meses_chaves = 30      
     default_renda = 14868.0
     opcoes_amortizacao = ["SAC"]
 else:
-    default_imovel = 437000.0
-    default_entrada = 62000.0      # 55k da entrada + 7k de FGTS
-    default_mensal_const = 3538.0  # Parcela seca diluindo o GAP de 138k
-    default_meses_chaves = 39      # Prazo da obra dele
+    default_imovel = 437000.0      # Atualizado para 437k
+    default_entrada = 62000.0      
+    default_mensal_const = 0.0     # Será calculado automaticamente pelo motor
+    default_meses_chaves = 39      
     default_renda = 7500.0
     opcoes_amortizacao = ["PRICE", "SAC"]
 
-# --- O SEU LAYOUT MANTIDO (Apenas com o 'value' atualizado) ---
+# --- 2. INPUTS NA TELA PRINCIPAL ---
 st.header("1. Parâmetros do Negócio")
 col1, col2, col3 = st.columns(3)
 
@@ -52,7 +53,7 @@ with col3:
     taxa_juros_anual = st.number_input("Taxa de Juros Anual do Financiamento (%)", min_value=0.0, value=11.19, step=0.1)
     valor_condominio = st.number_input("Valor do Condomínio", min_value=0.0, value=0.0, step=50.0)
 
-# Sistema de Pagamento (Dinâmico conforme o perfil)
+# Sistema de Pagamento 
 sistema_amortizacao = st.sidebar.selectbox(
     "Sistema de Amortização",
     opcoes_amortizacao,
@@ -60,7 +61,7 @@ sistema_amortizacao = st.sidebar.selectbox(
 )
 
 if renda_casal <= 0:
-    st.warning("⚠️ Insira a renda líquida mensal do casal para calcular o comprometimento.")
+    st.warning("⚠️ Insira a renda líquida mensal informada para calcular o comprometimento.")
 
 st.markdown("---")
 st.header("2. Análise do Financiamento e Obra")
@@ -69,40 +70,40 @@ st.header("2. Análise do Financiamento e Obra")
 taxa_mensal = (taxa_juros_anual / 100) / 12  
 saldo_necessario = valor_imovel - entrada_inicial
 
-# Definindo os tetos e a matemática de acordo com o perfil
-if perfil == "Cenário João Pedro":
+if perfil == "Cenário João & Mari":
     if sistema_amortizacao == "PRICE":
         saldo_financiado = 298000.00
-        # Fórmula PRICE: Parcela Fixa
         parcela_banco_inicial = saldo_financiado * (taxa_mensal * (1 + taxa_mensal)**prazo_financiamento) / ((1 + taxa_mensal)**prazo_financiamento - 1)
+        ultima_parcela_banco = parcela_banco_inicial # PRICE é fixa
     else: 
-        # SAC João Pedro
         saldo_financiado = 250000.00
         amortizacao = saldo_financiado / prazo_financiamento
         parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
+        ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal) # Aproximação da última na SAC
         
-    # O João Pedro tem um "Buraco" (GAP) com a construtora que precisa ser diluído nos meses de obra
     gap_construtora = valor_imovel - entrada_inicial - saldo_financiado
     mensal_construtora_calculada = gap_construtora / meses_ate_chaves
     teto_obra = parcela_banco_inicial
-    obra_inicial = 100.00 # A EO começa pequena no primeiro mês
+    obra_inicial = 100.00 
     
 else:
-    # Cenário Vinicius & Ju
     saldo_financiado = saldo_necessario
     amortizacao = saldo_financiado / prazo_financiamento
     parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
+    ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal)
     
-    # Mantém os valores que vocês já preencheram no input
     mensal_construtora_calculada = mensal_construtora 
     teto_obra = parcela_banco_inicial
-    obra_inicial = 1480.52 # O valor inicial que já estava na sua tabela
+    obra_inicial = 1480.52 
 
-# Exibe o diagnóstico executivo na tela antes do gráfico
+# Variável fundamental destravada para as próximas seções
+saldo_devedor_chaves = saldo_financiado
+
+# Exibe o diagnóstico na tela
 col_res1, col_res2, col_res3 = st.columns(3)
 col_res1.metric("Saldo Financiado (Banco)", f"R$ {saldo_financiado:,.2f}")
 
-if perfil == "Cenário João Pedro":
+if perfil == "Cenário João & Mari":
     col_res2.metric("GAP Construtora (Buraco)", f"R$ {gap_construtora:,.2f}")
     col_res3.metric("Nova Parcela Const. (Sem INCC)", f"R$ {mensal_construtora_calculada:,.2f}")
 else:
@@ -111,61 +112,60 @@ else:
     
 st.info(f"💡 A 1ª parcela do financiamento na entrega das chaves ({sistema_amortizacao}) será de **R$ {parcela_banco_inicial:,.2f}**.")
 
-# 3. Financiamento Pós-Chaves (Tabela SAC)
-st.header("3. Financiamento Pós-Chaves (Tabela SAC)")
+# --- NOVO: CONSTRUTOR DO DATAFRAME PRÉ-CHAVES ---
+meses_array = np.arange(1, int(meses_ate_chaves) + 1)
+evolucao_obra_array = np.linspace(obra_inicial, teto_obra, len(meses_array))
+parcela_const_array = np.full(len(meses_array), mensal_construtora_calculada)
 
-# Ajuste Cirúrgico: Valores exatos já aprovados pela Caixa
-primeira_parcela_sac = 8225.12
-ultima_parcela_sac = 2109.25
+df_pre_chaves = pd.DataFrame({
+    'Mês': meses_array,
+    'Evolução de Obra (R$)': evolucao_obra_array,
+    'Parcela Construtora (R$)': parcela_const_array,
+    'Custo Total Mensal (R$)': evolucao_obra_array + parcela_const_array
+})
+
+# --- 4. FINANCIAMENTO PÓS-CHAVES ---
+st.header(f"3. Financiamento Pós-Chaves ({sistema_amortizacao})")
 
 col4, col5, col6 = st.columns(3)
 col4.metric("Saldo Devedor a Financiar (R$)", f"R$ {saldo_devedor_chaves:,.2f}")
-# Atualizei as legendas para refletir que agora são valores exatos contratuais
-col5.metric("Primeira Parcela SAC (Exata)", f"R$ {primeira_parcela_sac:,.2f}")
-col6.metric("Última Parcela SAC (Exata)", f"R$ {ultima_parcela_sac:,.2f}")
+col5.metric("Primeira Parcela (Exata)", f"R$ {parcela_banco_inicial:,.2f}")
+col6.metric("Última Parcela (Estimada)", f"R$ {ultima_parcela_banco:,.2f}")
 
-# Proteção contra divisão por zero (que já havíamos implementado)
 if renda_casal > 0:
-    comprometimento_renda = (primeira_parcela_sac / renda_casal) * 100
-    
+    comprometimento_renda = (parcela_banco_inicial / renda_casal) * 100
     if comprometimento_renda > 30:
-        st.warning(f"⚠️ A primeira parcela compromete {comprometimento_renda:.1f}% da renda líquida informada. O limite exigido pelos bancos é 30% da renda bruta.")
+        st.warning(f"⚠️ A primeira parcela compromete {comprometimento_renda:.1f}% da renda informada. O limite dos bancos é 30% da renda bruta.")
     else:
         st.success(f"✅ Comprometimento de renda em {comprometimento_renda:.1f}%.")
-else:
-    st.info("ℹ️ Insira a renda do casal na Seção 1 para visualizar o comprometimento.")
 
 st.divider()
 
-# 4. Planejamento de Amortização Extraordinária
+# --- 5. AMORTIZAÇÃO EXTRAORDINÁRIA ---
 st.header("4. Planejamento de Amortização Extraordinária")
 
-# O slider usa o saldo devedor calculado na Seção 1
-meta_amortizacao = st.slider("Quanto você deseja abater do saldo devedor nas chaves? (R$)", min_value=0, max_value=int(saldo_devedor_chaves), step=5000, value=50000)
+meta_amortizacao = st.slider("Quanto abater do saldo devedor nas chaves? (R$)", min_value=0, max_value=int(saldo_devedor_chaves), step=5000, value=50000)
 
 if meta_amortizacao > 0:
-    # Correção: Recriando a variável de amortização constante (SAC)
-    amortizacao_mensal = saldo_devedor_chaves / prazo_financiamento
-    
-    # Recálculo preciso da nova parcela reduzida usando o valor cravado da Caixa
-    taxa_juros_mensal = 0.009521 # Taxa de juros mensal aproximada (CET)
-    reducao_parcela = (meta_amortizacao / prazo_financiamento) + (meta_amortizacao * taxa_juros_mensal)
-    nova_primeira_parcela = primeira_parcela_sac - reducao_parcela
-    
-    # Alternativa 1: Reduzir Valor da Parcela
-    st.success(f"📉 **Alternativa - Reduzir Valor:** Sua primeira parcela SAC cairá de R$ {primeira_parcela_sac:,.2f} para **R$ {nova_primeira_parcela:,.2f}** (mantendo o prazo original).")
-    
-    # Alternativa 2: Reduzir Prazo
-    if amortizacao_mensal > 0:
-        parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
-        anos_reduzidos = parcelas_reduzidas / 12
-        st.success(f"⏳ **Alternativa - Reduzir Prazo:** Esse valor quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de cerca de **{anos_reduzidos:.1f} anos**).")
+    if sistema_amortizacao == "SAC":
+        amortizacao_mensal = saldo_devedor_chaves / prazo_financiamento
+        taxa_juros_mensal = 0.009521 
+        reducao_parcela = (meta_amortizacao / prazo_financiamento) + (meta_amortizacao * taxa_juros_mensal)
+        nova_primeira_parcela = parcela_banco_inicial - reducao_parcela
+        
+        st.success(f"📉 **Alternativa - Reduzir Valor:** A parcela cai de R$ {parcela_banco_inicial:,.2f} para **R$ {nova_primeira_parcela:,.2f}**.")
+        
+        if amortizacao_mensal > 0:
+            parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
+            anos_reduzidos = parcelas_reduzidas / 12
+            st.success(f"⏳ **Alternativa - Reduzir Prazo:** Quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de **{anos_reduzidos:.1f} anos**).")
+    else:
+        st.info("ℹ️ Na Tabela PRICE, a amortização extraordinária recalcula a parcela fixa inteira ou o prazo de forma não linear. Sugerimos focar em redução de prazo.")
         
 st.divider()
 
-# 5. Simulação de Orçamento: Poupança x Obra
+# --- 6. ORÇAMENTO Mensal ---
 st.subheader("5. Simulação de Orçamento: Poupança x Obra")
-st.markdown("Estabeleça o teto de gastos do mês. Conforme a evolução de obra 'esmaga' sua margem de poupança, o sistema aumenta automaticamente seu desembolso para garantir a reserva mínima estipulada.")
 
 col7, col8 = st.columns(2)
 with col7:
@@ -193,15 +193,13 @@ df_pre_chaves['Poupança Gerada (R$)'] = lista_poupanca
 df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
 
 st.bar_chart(df_pre_chaves[['Custo Total Mensal (R$)', 'Poupança Gerada (R$)']])
-
-# 6. Visão Dinâmica Consolidada (Matriz Anual)
 st.divider()
-st.subheader("6. Visão Dinâmica Consolidada (Matriz Anual)")
-st.markdown("Projeção de fluxo de caixa mês a mês agrupada por ano, espelhando o controle executivo.")
 
-import datetime
+# --- 7. VISÃO DINÂMICA CONSOLIDADA ---
+st.subheader("6. Visão Dinâmica Consolidada (Matriz Anual)")
+
 data_inicio = datetime.date(2026, 6, 1)
-datas_reais = [data_inicio + pd.DateOffset(months=i) for i in range(meses_ate_chaves)]
+datas_reais = [data_inicio + pd.DateOffset(months=i) for i in range(int(meses_ate_chaves))]
 
 df_pre_chaves['Data Real'] = datas_reais
 df_pre_chaves['Ano'] = df_pre_chaves['Data Real'].dt.year
@@ -229,21 +227,17 @@ for i, ano in enumerate(anos_unicos):
             use_container_width=True
         )
 
-# Painel unificado com os 3 grandes totais acumulados do período
+# --- 8. RESUMO EXECUTIVO ---
 st.markdown("---")
 st.subheader("📊 Resumo Consolidado do Período de Obras")
 col_tot1, col_tot2, col_tot3 = st.columns(3)
 
 total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
 total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
-
-# Ajuste Cirúrgico: Somando tudo para mostrar o Esforço Total de Caixa do período
 total_esforco_caixa = df_pre_chaves['Desembolso Real do Mês (R$)'].sum()
 
 col_tot1.metric("Total Acumulado (Poupança)", f"R$ {total_poupanca_geral:,.2f}")
 col_tot2.metric("Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
 col_tot3.metric("Esforço Total de Caixa (Gasto + Poupança)", f"R$ {total_esforco_caixa:,.2f}")
-
-
 
 
