@@ -173,7 +173,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     st.divider()
 
     # --- 4. SIMULAÇÃO DE ORÇAMENTO E POUPANÇA (Adaptável por Perfil) ---
-    st.subheader("4. Simulação de Orçamento: Poupança x Obra")
+    st.header("4. Simulação de Orçamento: Poupança x Obra")
     
     # Define valores baseados no perfil
     if perfil == "Cenário Vinicius & Ju":
@@ -209,14 +209,16 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
 
     # --- VISÃO FACILITADA DOS TOTAIS ---
-    st.markdown("### Resumo Consolidado do Período de Obras")
+    st.markdown("### 📊 Resumo Consolidado do Período de Obras")
     total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
     total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
     total_esforco_caixa = df_pre_chaves['Desembolso Real do Mês (R$)'].sum()
 
     col_t1, col_t2, col_t3 = st.columns(3)
-    col_t1.metric("1. Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
-    col_t2.metric("2. Poupança Acumulada nas Chaves", f"R$ {total_poupanca_geral:,.2f}")
+    
+    # Poupança na posição 1 com destaque (Emoji no título e texto Delta para ficar verde)
+    col_t1.metric("💰 1. Poupança Acumulada nas Chaves", f"R$ {total_poupanca_geral:,.2f}", "Seu poder de fogo")
+    col_t2.metric("2. Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
     col_t3.metric("3. Esforço Total de Caixa", f"R$ {total_esforco_caixa:,.2f}")
 
     st.divider()
