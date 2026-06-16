@@ -80,14 +80,19 @@ saldo_necessario = valor_imovel - entrada_inicial
 if perfil == "Cenário João & Mari":
     if sistema_amortizacao == "PRICE":
         saldo_financiado = 298000.00
-        # Valores cravados conforme aprovação real da Caixa (Crédito Associativo)
-        parcela_banco_inicial = 2135.00 
-        ultima_parcela_banco = 2135.00
+        # Valores cravados com precisão de centavos conforme aprovação real da Caixa
+        parcela_banco_inicial = 2153.22 
+        ultima_parcela_banco = 2153.22
     else: 
-        saldo_financiado = 250000.00 # Teto se insistirem na SAC
+        saldo_financiado = 250000.00 # Teto estimado se insistissem na SAC
         amortizacao = saldo_financiado / prazo_financiamento
         parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
-        ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal) # Aproximação
+        ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal) 
+        
+    gap_construtora = valor_imovel - entrada_inicial - saldo_financiado
+    mensal_construtora_calculada = gap_construtora / meses_ate_chaves
+    teto_obra = parcela_banco_inicial
+    obra_inicial = 100.00
         
     gap_construtora = valor_imovel - entrada_inicial - saldo_financiado
     mensal_construtora_calculada = gap_construtora / meses_ate_chaves
