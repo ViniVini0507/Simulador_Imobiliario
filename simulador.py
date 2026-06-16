@@ -147,7 +147,13 @@ st.divider()
 # --- 5. AMORTIZAÇÃO EXTRAORDINÁRIA ---
 st.header("4. Planejamento de Amortização Extraordinária")
 
-meta_amortizacao = st.slider("Quanto abater do saldo devedor nas chaves? (R$)", min_value=0, max_value=int(saldo_devedor_chaves), step=5000, value=50000)
+meta_amortizacao = st.slider(
+    "Quanto abater do saldo devedor nas chaves? (R$)", 
+    min_value=0, 
+    max_value=int(saldo_devedor_chaves), 
+    step=5000, 
+    value=50000
+)
 
 if meta_amortizacao > 0:
     if sistema_amortizacao == "SAC":
@@ -162,9 +168,25 @@ if meta_amortizacao > 0:
             parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
             anos_reduzidos = parcelas_reduzidas / 12
             st.success(f"⏳ **Alternativa - Reduzir Prazo:** Quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de **{anos_reduzidos:.1f} anos**).")
-    else:
-        st.info("ℹ️ Na Tabela PRICE, a amortização extraordinária (lance extra com FGTS ou dinheiro) vai inteiramente para abater o Saldo Devedor. A melhor estratégia é optar por reduzir o prazo, eliminando o peso gigantesco dos juros compostos que existem no final do contrato.")
+            
+    elif sistema_amortizacao == "PRICE":
+        novo_saldo_devedor = saldo_devedor_chaves - meta_amortizacao
         
+        # O app precisa de uma trava de segurança matemática para não dar erro de logaritmo negativo
+        if (novo_saldo_devedor * taxa_mensal) >= parcela_banco_inicial:
+            st.error("Erro: O novo saldo devedor gera juros maiores que a parcela atual.")
+        else:
+            # Fórmula do Prazo na PRICE: n = -log(1 - (PV * i) / PMT) / log(1 + i)
+            novo_prazo = -math.log(1 - (novo_saldo_devedor * taxa_mensal) / parcela_banco_inicial) / math.log(1 + taxa_mensal)
+            novo_prazo_meses = int(round(novo_prazo))
+            
+            meses_economizados = int(prazo_financiamento) - novo_prazo_meses
+            anos_economizados = meses_economizados / 12
+            
+            st.success(f"⏳ **Efeito do Aporte (Foco em Prazo):** Ao injetar R$ {meta_amortizacao:,.2f}, seu saldo cai para R$ {novo_saldo_devedor:,.2f}.")
+            st.success(f"🚀 **Resultado:** Mantendo a parcela cravada de R$ {parcela_banco_inicial:,.2f}, você elimina **{meses_economizados} meses** de dívida (cerca de **{anos_economizados:.1f} anos a menos** pagando juros ao banco).")
+            st.info("ℹ️ Exibindo estritamente a opção de redução de prazo. Na Tabela PRICE, reduzir o valor da parcela diminui a velocidade de amortização e devolve o lucro ao banco.")
+
 st.divider()
 
 # --- 6. ORÇAMENTO Mensal ---
