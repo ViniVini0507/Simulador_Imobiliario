@@ -198,7 +198,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     st.bar_chart(df_pre_chaves[['Custo Total Mensal (R$)', 'Poupança Gerada (R$)']])
     
-    # OS TOTALIZADORES VOLTARAM AQUI
+    # TOTALIZADORES
     total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
     total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
     total_esforco_caixa = df_pre_chaves['Desembolso Real do Mês (R$)'].sum()
@@ -213,7 +213,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     st.divider()
 
     # --- 5. O TRILEMA DAS CHAVES (REFORMA VS. BANCO) ---
-    st.header("5. O Trilema das Chaves: Reforma x Prazo x Parcela")
+    st.header("5. Reforma x Prazo x Parcela")
     st.markdown("Chegou o dia de pegar as chaves. Aloque o seu 'Caixa Acumulado' (calculado acima) para ver qual estratégia protege mais o seu patrimônio.")
 
     # A INTELIGÊNCIA AQUI: O valor default puxa automaticamente o que foi poupado na Seção 4
@@ -225,6 +225,9 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     with col_tril2:
         saldo_para_banco = caixa_disponivel - reserva_reforma
         st.metric("2. Saldo Livre para Atacar o Banco", f"R$ {saldo_para_banco:,.2f}", "Poder de fogo pós-reforma")
+
+    # NOVO: Alerta visual explicando os 60% e a liberdade de alteração
+    st.info("💡 **Por que 60%?** O sistema sugere reservar automaticamente 60% do seu caixa para garantir a reforma, os móveis e o ar-condicionado, evitando que você se descapitalize e caia em juros de cartão de crédito. **Sinta-se livre para digitar o valor exato no campo acima caso o seu orçamento real fique mais barato ou mais caro.**")
 
     if saldo_para_banco > 0:
         st.markdown(f"**Como você quer aplicar os R$ {saldo_para_banco:,.2f} na Caixa Econômica?**")
