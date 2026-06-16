@@ -5,7 +5,7 @@ import datetime
 import math
 
 # Configuração da Página
-st.set_page_config(page_title="Simulador de Imóvel na Planta", page_icon="🏢", layout="wide")
+st.set_page_config(page_title="Simulador de Cenários - Imóvel na Planta", page_icon="🏢", layout="wide")
 
 st.title("🏢 Simulador de Compra de Imóvel na Planta")
 st.markdown("Projete seu fluxo de caixa até a entrega das chaves e o financiamento pós-chaves.")
