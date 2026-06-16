@@ -170,36 +170,59 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     st.divider()
 
-    st.header("4. Planejamento de Amortização Extraordinária")
-    meta_amortizacao = st.slider("Quanto abater do saldo devedor nas chaves? (R$)", min_value=0, max_value=int(saldo_devedor_chaves), step=5000, value=50000)
+    # --- 5. O TRILEMA DAS CHAVES (REFORMA VS. BANCO) ---
+    st.header("4. Reforma x Prazo x Parcela")
+    st.markdown("Chegou o dia de pegar as chaves. Aloque o seu 'Caixa Acumulado' para ver qual estratégia protege mais o seu patrimônio.")
 
-    if meta_amortizacao > 0:
+    caixa_disponivel = st.number_input("Dinheiro Total Acumulado nas Chaves (R$)", min_value=0.0, value=80000.0, step=5000.0)
+
+    col_tril1, col_tril2 = st.columns(2)
+    with col_tril1:
+        reserva_reforma = st.number_input("1. Reserva Sagrada para Reforma e Móveis (R$)", min_value=0.0, max_value=float(caixa_disponivel), value=float(caixa_disponivel * 0.6), step=1000.0)
+    with col_tril2:
+        saldo_para_banco = caixa_disponivel - reserva_reforma
+        st.metric("2. Saldo Livre para Atacar o Banco", f"R$ {saldo_para_banco:,.2f}", "Poder de fogo pós-reforma")
+
+    if saldo_para_banco > 0:
+        st.markdown(f"**Como você quer aplicar os R$ {saldo_para_banco:,.2f} na Caixa Econômica?**")
+        
+        estrategia_banco = st.radio(
+            "Escolha a tática:", 
+            ["Focar em Reduzir Prazo (Maior economia de juros a longo prazo)", "Focar em Reduzir Parcela (Maior alívio no fluxo de caixa mensal)"]
+        )
+
         if sistema_amortizacao == "SAC":
-            amortizacao_mensal = saldo_devedor_chaves / prazo_financiamento
-            taxa_juros_mensal = 0.009521 
-            reducao_parcela = (meta_amortizacao / prazo_financiamento) + (meta_amortizacao * taxa_juros_mensal)
-            nova_primeira_parcela = parcela_banco_inicial - reducao_parcela
+            amortizacao_mensal_atual = saldo_devedor_chaves / prazo_financiamento
+            economia_juros_direta = saldo_para_banco * taxa_mensal
             
-            st.success(f"📉 **Alternativa - Reduzir Valor:** A parcela cai de R$ {parcela_banco_inicial:,.2f} para **R$ {nova_primeira_parcela:,.2f}**.")
-            
-            if amortizacao_mensal > 0:
-                parcelas_reduzidas = int(meta_amortizacao / amortizacao_mensal)
+            if "Prazo" in estrategia_banco:
+                parcelas_reduzidas = int(saldo_para_banco / amortizacao_mensal_atual)
                 anos_reduzidos = parcelas_reduzidas / 12
-                st.success(f"⏳ **Alternativa - Reduzir Prazo:** Quita aproximadamente **{parcelas_reduzidas} parcelas** (redução de **{anos_reduzidos:.1f} anos**).")
+                nova_primeira_parcela = parcela_banco_inicial - economia_juros_direta
+                
+                st.success(f"⏳ **Efeito no Prazo:** Você arranca **{parcelas_reduzidas} meses** (cerca de **{anos_reduzidos:.1f} anos**) do seu contrato com o banco.")
+                st.info(f"💡 **Brinde do SAC:** Mesmo focando em cortar o tempo, a redução da dívida faz sua 1ª parcela cair naturalmente de R$ {parcela_banco_inicial:,.2f} para **R$ {nova_primeira_parcela:,.2f}**.")
+                
+            else:
+                novo_saldo_devedor = saldo_devedor_chaves - saldo_para_banco
+                nova_amortizacao_mensal = novo_saldo_devedor / prazo_financiamento
+                nova_primeira_parcela = nova_amortizacao_mensal + (novo_saldo_devedor * taxa_mensal)
+                
+                st.success(f"📉 **Efeito na Parcela:** Sua 1ª parcela despenca de R$ {parcela_banco_inicial:,.2f} para **R$ {nova_primeira_parcela:,.2f}**.")
+                st.warning(f"⚠️ O prazo continua em {int(prazo_financiamento)} meses. Você ganha muito fôlego mensal, mas deixa de economizar centenas de milhares de reais em juros se comparado à redução de prazo.")
                 
         elif sistema_amortizacao == "PRICE":
-            novo_saldo_devedor = saldo_devedor_chaves - meta_amortizacao
-            if (novo_saldo_devedor * taxa_mensal) >= parcela_banco_inicial:
-                st.error("Erro: O novo saldo devedor gera juros maiores que a parcela atual.")
+            if "Prazo" in estrategia_banco:
+                novo_saldo_devedor = saldo_devedor_chaves - saldo_para_banco
+                if (novo_saldo_devedor * taxa_mensal) >= parcela_banco_inicial:
+                    st.error("Erro matemático: O saldo devedor gera juros maiores que a parcela.")
+                else:
+                    novo_prazo = -math.log(1 - (novo_saldo_devedor * taxa_mensal) / parcela_banco_inicial) / math.log(1 + taxa_mensal)
+                    meses_economizados = int(prazo_financiamento) - int(round(novo_prazo))
+                    st.success(f"⏳ **Efeito no Prazo:** Mantendo a parcela cravada em R$ {parcela_banco_inicial:,.2f}, você elimina **{meses_economizados} meses** de dívida (cerca de **{meses_economizados/12:.1f} anos a menos** pagando juros).")
             else:
-                novo_prazo = -math.log(1 - (novo_saldo_devedor * taxa_mensal) / parcela_banco_inicial) / math.log(1 + taxa_mensal)
-                novo_prazo_meses = int(round(novo_prazo))
-                meses_economizados = int(prazo_financiamento) - novo_prazo_meses
-                anos_economizados = meses_economizados / 12
-                
-                st.success(f"⏳ **Efeito do Aporte (Foco em Prazo):** Ao injetar R$ {meta_amortizacao:,.2f}, seu saldo cai para R$ {novo_saldo_devedor:,.2f}.")
-                st.success(f"🚀 **Resultado:** Mantendo a parcela cravada de R$ {parcela_banco_inicial:,.2f}, você elimina **{meses_economizados} meses** de dívida (cerca de **{anos_economizados:.1f} anos a menos** pagando juros ao banco).")
-
+                st.error("❌ Na Tabela PRICE, reduzir o valor da parcela é uma armadilha matemática. A velocidade de pagamento do principal cai tanto que você acaba devolvendo ao banco quase todo o lucro da amortização. Recomendamos focar estritamente na redução de prazo.")
+    
     st.divider()
 
     st.subheader("5. Simulação de Orçamento: Poupança x Obra")
