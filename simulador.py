@@ -208,17 +208,16 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     df_pre_chaves['Poupança Gerada (R$)'] = lista_poupanca
     df_pre_chaves['Desembolso Real do Mês (R$)'] = lista_desembolso_real
 
-    # --- CORREÇÃO AQUI: Nomes unificados para evitar NameError ---
-    st.markdown("### Resumo Consolidado do Período")
+    # --- VISÃO FACILITADA DOS TOTAIS ---
+    st.markdown("### Resumo Consolidado do Período de Obras")
     total_eo_geral = df_pre_chaves['Evolução de Obra (R$)'].sum()
-    total_const_geral = df_pre_chaves['Parcela Construtora (R$)'].sum()
     total_poupanca_geral = df_pre_chaves['Poupança Gerada (R$)'].sum()
     total_esforco_caixa = df_pre_chaves['Desembolso Real do Mês (R$)'].sum()
 
     col_t1, col_t2, col_t3 = st.columns(3)
-    col_t1.metric("1. Evolução de Obra (Total)", f"R$ {total_eo_geral:,.2f}")
-    col_t2.metric("2. Parcela Construtora (Total)", f"R$ {total_const_geral:,.2f}")
-    col_t3.metric("3. Poupança Acumulada (Total)", f"R$ {total_poupanca_geral:,.2f}")
+    col_t1.metric("1. Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
+    col_t2.metric("2. Poupança Acumulada nas Chaves", f"R$ {total_poupanca_geral:,.2f}")
+    col_t3.metric("3. Esforço Total de Caixa", f"R$ {total_esforco_caixa:,.2f}")
 
     st.divider()
 
@@ -279,13 +278,6 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
     )
     
     st.plotly_chart(fig, use_container_width=True)    
-
-    st.markdown("---")
-    st.subheader("📊 Resumo Consolidado do Período de Obras")
-    col_tot1, col_tot2, col_tot3 = st.columns(3)
-    col_tot1.metric("Total Acumulado (Poupança)", f"R$ {total_poupanca_geral:,.2f}")
-    col_tot2.metric("Total de Evolução de Obra (EO)", f"R$ {total_eo_geral:,.2f}")
-    col_tot3.metric("Esforço Total de Caixa (Gasto + Poupança)", f"R$ {total_esforco_caixa:,.2f}")
 
     st.divider()
 
