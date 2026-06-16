@@ -247,15 +247,28 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
         fig.add_hline(y=limite_50, line_dash="dash", line_color="red", 
                       annotation_text="🚨 50% da Renda", annotation_position="top left")
 
+    # Ajustes finos de layout
     fig.update_layout(
         barmode='stack', 
         legend_title_text='', 
         xaxis_title="Meses até as Chaves",
-        hovermode="x unified"
+        hovermode="x unified",
+        # NOVO: Estilizando a caixinha do hover para ficar com cara de app moderno
+        hoverlabel=dict(
+            bgcolor="#1E1E1E",
+            font_size=14,
+            font_family="sans-serif"
+        )
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    # A MÁGICA DA UI LIMPA:
+    # Isso força o Plotly a mostrar apenas "R$ Valor" formatado com 2 casas decimais,
+    # removendo todo aquele texto repetido de "Composição=" e "Mês="
+    fig.update_traces(
+        hovertemplate="<b>R$ %{y:,.2f}</b>"
+    )
     
+    st.plotly_chart(fig, use_container_width=True)    
 
     st.markdown("---")
     st.subheader("📊 Resumo Consolidado do Período de Obras")
