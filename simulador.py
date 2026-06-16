@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import datetime
+import math
 
 # Configuração da Página
 st.set_page_config(page_title="Simulador de Imóvel na Planta", page_icon="🏢", layout="wide")
