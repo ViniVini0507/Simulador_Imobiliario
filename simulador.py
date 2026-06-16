@@ -36,11 +36,11 @@ if perfil == "Cenário Vinicius & Ju":
     default_taxa = 11.19         
     opcoes_amortizacao = ["SAC"]
 else:
-    default_imovel = 437000.0      
+    default_imovel = 421515.41      
     default_entrada = 65000.0      
     default_mensal_const = 0.0     
     default_meses_chaves = 39      
-    default_renda = 7500.0
+    default_renda = 6200.0
     default_prazo = 420          
     default_taxa = 7.93          
     opcoes_amortizacao = ["PRICE", "SAC"]
@@ -86,7 +86,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
 
     if perfil == "Cenário João & Mari":
         if sistema_amortizacao == "PRICE":
-            saldo_financiado = 298000.00
+            saldo_financiado = 298622.00
             parcela_banco_inicial = 2153.22 
             ultima_parcela_banco = 2153.22
         else: 
