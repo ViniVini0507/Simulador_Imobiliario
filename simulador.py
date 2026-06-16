@@ -101,14 +101,28 @@ if perfil == "Cenário João & Mari":
     
 else:
     # Cenário Vinicius & Ju
-    saldo_financiado = saldo_necessario
+    teto_aprovado_caixa = 636990.00
+    saldo_necessario_real = valor_imovel - entrada_inicial
+    
+    # Lógica inteligente de teto: O banco financia o que você precisa, até o limite de 636k.
+    if saldo_necessario_real > teto_aprovado_caixa:
+        saldo_financiado = teto_aprovado_caixa
+        gap_construtora = saldo_necessario_real - teto_aprovado_caixa
+    else:
+        saldo_financiado = saldo_necessario_real
+        gap_construtora = 0.0
+
+    # O cálculo da parcela da Caixa (SAC) usa o saldo efetivamente financiado
     amortizacao = saldo_financiado / prazo_financiamento
     parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
     ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal)
     
-    mensal_construtora_calculada = mensal_construtora 
+    # Se gerou um "Buraco" (GAP) por ter pego um imóvel mais caro, soma isso à parcela mensal
+    # Considerando os mesmos meses_ate_chaves do fluxo de obra
+    mensal_construtora_calculada = (gap_construtora / meses_ate_chaves) + mensal_construtora 
+    
     teto_obra = parcela_banco_inicial
-    obra_inicial = 1480.52 
+    obra_inicial = 1480.52
 
 # Variável fundamental destravada para as próximas seções
 saldo_devedor_chaves = saldo_financiado
