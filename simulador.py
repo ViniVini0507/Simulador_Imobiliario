@@ -22,7 +22,7 @@ perfil = st.sidebar.radio(
 if perfil == "Cenário Vinicius & Ju":
     default_imovel = 717000.0
     default_entrada = 55000.0
-    default_mensal_const = 0  
+    default_mensal_const = 0.0 
     default_meses_chaves = 30      
     default_renda = 14868.0
     default_prazo = 308          # O seu prazo original
@@ -87,11 +87,6 @@ if perfil == "Cenário João & Mari":
         amortizacao = saldo_financiado / prazo_financiamento
         parcela_banco_inicial = amortizacao + (saldo_financiado * taxa_mensal)
         ultima_parcela_banco = amortizacao + (amortizacao * taxa_mensal) 
-        
-    gap_construtora = valor_imovel - entrada_inicial - saldo_financiado
-    mensal_construtora_calculada = gap_construtora / meses_ate_chaves
-    teto_obra = parcela_banco_inicial
-    obra_inicial = 100.00
         
     gap_construtora = valor_imovel - entrada_inicial - saldo_financiado
     mensal_construtora_calculada = gap_construtora / meses_ate_chaves
