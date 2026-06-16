@@ -4,7 +4,17 @@ import numpy as np
 import datetime
 import math
 
-# Configuração da Página
+# --- MODO DE OPERAÇÃO DO SISTEMA ---
+st.sidebar.markdown("---")
+st.sidebar.header("Modo de Operação")
+modo_app = st.sidebar.radio(
+    "O que você deseja fazer?",
+    ["🎯 Simulador (Pré-Assinatura)", "📊 Controladoria (Pós-Assinatura)"]
+)
+
+# O código que nós construímos até agora vai ficar todo "abraçado" por este if:
+if modo_app == "🎯 Simulador (Pré-Assinatura)":
+    # Configuração da Página
 st.set_page_config(page_title="Simulador de Cenários - Imóvel na Planta", page_icon="🏢", layout="wide")
 
 st.title("🏢 Simulador de Compra de Imóvel na Planta")
@@ -344,8 +354,20 @@ if gap_construtora > 0:
     st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f}** em receitas extras ao longo da obra. Como você tem uma dívida residual com a construtora (o GAP) de **R$ {gap_construtora:,.2f}**, o movimento mais inteligente é usar esses bônus anuais para antecipar as parcelas da construtora de trás para frente (ganhando o desconto de juros). Se sobrar algum valor desse bônus, você abate o financiamento da Caixa nas chaves.")
 else:
     st.success(f"💡 **Estratégia Tática:** Você terá acumulado **R$ {total_extra_acumulado:,.2f}** em receitas extras ao longo da obra. Como o seu financiamento cobriu tudo e você NÃO tem dívida com a construtora (GAP zerado), guarde 100% desses bônus na renda fixa e use-os como uma 'pancada' de amortização no saldo devedor da Caixa logo na entrega das chaves, reduzindo anos do seu contrato.")
+pass
 
+else:
+    # A tela vai ficar limpa e carregar apenas o Painel de Controle Ativo
+    st.title("📊 Painel de Controle Ativo da Obra")
+    st.info("Área destinada ao acompanhamento do INCC, Evolução de Obra real e registro de amortizações.")
+    
+    col_ctrl1, col_ctrl2, col_ctrl3 = st.columns(3)
+    # Inputs que vocês usarão mês a mês
+    mes_atual_obra = col_ctrl1.number_input("Mês Atual da Obra (Ex: 5 de 30)", min_value=1, step=1)
+    saldo_real_const = col_ctrl2.number_input("Saldo Atualizado Construtora (com INCC)", min_value=0.0, step=1000.0)
+    eo_paga_mes = col_ctrl3.number_input("Evolução de Obra Paga neste mês", min_value=0.0, step=100.0)
 
+# ... aqui entrará a lógica de recálculo da rota ...
 
 
 
