@@ -28,7 +28,7 @@ perfil = st.sidebar.radio(
 
 # Definindo os valores padrão
 if perfil == "Cenário Vinicius & Ju":
-    default_imovel = 7059000.0
+    default_imovel = 705900.0
     default_entrada = 55000.0
     default_mensal_const = 0.0  
     default_meses_chaves = 30      
