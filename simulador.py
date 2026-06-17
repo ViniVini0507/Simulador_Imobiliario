@@ -336,7 +336,7 @@ if modo_app == "🎯 Simulador (Pré-Assinatura)":
                     meses_economizados = int(prazo_financiamento) - int(round(novo_prazo))
                     st.success(f"⏳ **Efeito no Prazo:** Mantendo a parcela cravada em R$ {parcela_banco_inicial:,.2f}, você elimina **{meses_economizados} meses** de dívida (cerca de **{meses_economizados/12:.1f} anos a menos** pagando juros).")
             else:
-                st.error("❌ Na Tabela PRICE, reduzir o valor da parcela é uma armadilha matemática. A velocidade de pagamento do principal cai tanto que você acaba devolvendo ao banco quase todo o lucro da amortização. Recomendamos focar estritamente na redução de prazo.")
+                st.error("❌ Na Tabela PRICE, reduzir o valor da parcela é uma armadilha matemática. A velocidade de pagamento do principal cai tanto que você acaba devolvendo ao banco quase todo o lucro da amortização. Recomenda-se focar estritamente na redução de prazo.")
     
     st.divider()
 
