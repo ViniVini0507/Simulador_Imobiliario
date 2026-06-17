@@ -28,7 +28,7 @@ perfil = st.sidebar.radio(
 
 # Definindo os valores padrão
 if perfil == "Cenário Vinicius & Ju":
-    default_imovel = 717000.0
+    default_imovel = 7059000.0
     default_entrada = 55000.0
     default_mensal_const = 0.0  
     default_meses_chaves = 30      
@@ -37,7 +37,7 @@ if perfil == "Cenário Vinicius & Ju":
     default_taxa = 11.19         
     opcoes_amortizacao = ["SAC"]
 else:
-    default_imovel = 421515.41      
+    default_imovel = 437000.0      
     default_entrada = 65000.0      
     default_mensal_const = 0.0     
     default_meses_chaves = 39      
